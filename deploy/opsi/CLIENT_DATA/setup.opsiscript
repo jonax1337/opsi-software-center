@@ -1,39 +1,66 @@
 ; ----------------------------------------------------------------------
 ; Software Center — setup
-; Installiert den NSIS-Installer silent (perMachine) und legt die
-; Produkt-Icons unter %ProgramData%\opsi-kiosk\icons ab.
+; Fast-Exit wenn die Soll-Version bereits installiert ist (enforce-tauglich,
+; Check gegen Uninstall-Registry-DisplayVersion). Installer wird vor dem
+; Start lokal kopiert (EXE direkt vom Depot-Share haengt in Session 0).
 ; ----------------------------------------------------------------------
 [Actions]
 requiredWinstVersion >= "4.12.4"
 ScriptErrorMessages=off
 
+DefVar $ProductVersion$
+DefVar $InstalledVersion$
 DefVar $InstallDir$
-DefVar $Setup$
+DefVar $TmpDir$
+DefVar $LocalSetup$
 DefVar $ExitCode$
 
+Set $ProductVersion$ = "0.1.0"
 Set $InstallDir$ = "%ProgramFiles64Dir%\Software Center"
-Set $Setup$ = "%ScriptPath%\files\software-center-setup.exe"
+Set $TmpDir$ = "%CommonAppDataDir%\ITGG\tmp"
+Set $LocalSetup$ = $TmpDir$ + "\software-center-setup.exe"
 
-comment "--- laufende Instanzen beenden ---"
-Killtask "Software Center.exe"
-Killtask "opsi-kiosk.exe"
-
-comment "--- Installer ausfuehren ---"
-Winbatch_install
-Set $ExitCode$ = getLastExitCode
-if not ($ExitCode$ = "0")
-	logError "NSIS-Setup beendete sich mit ExitCode " + $ExitCode$
-	isFatalError
-endif
-
-comment "--- Produkt-Icons bereitstellen ---"
+comment "--- Icons immer aktualisieren (auch bei Fast-Exit) ---"
 Files_install_icons
 
-comment "--- Desktop-Link entfernen (Startmenue-Eintrag des Installers bleibt) ---"
-LinkFolder_remove_desktop
+comment "--- Fast-Exit: Soll-Version bereits installiert? ---"
+Set $InstalledVersion$ = GetRegistryStringValue64("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Software Center] DisplayVersion")
+if $InstalledVersion$ = ""
+	Set $InstalledVersion$ = GetRegistryStringValue32("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Software Center] DisplayVersion")
+endif
+if $InstalledVersion$ = $ProductVersion$
+	comment "Software Center " + $InstalledVersion$ + " bereits installiert -> Fast-Exit."
+else
+	comment "--- laufende Instanzen beenden ---"
+	Killtask "Software Center.exe"
+	Killtask "opsi-kiosk.exe"
+
+	comment "--- Installer lokal kopieren (nie EXE vom Share starten) ---"
+	Files_copy_setup
+
+	comment "--- Installer ausfuehren ---"
+	Winbatch_install
+	Set $ExitCode$ = getLastExitCode
+	if not ($ExitCode$ = "0")
+		logError "NSIS-Setup beendete sich mit ExitCode " + $ExitCode$
+		isFatalError
+	endif
+
+	comment "--- Desktop-Link entfernen (Startmenue-Eintrag bleibt) ---"
+	LinkFolder_remove_desktop
+
+	comment "--- Temp aufraeumen ---"
+	Files_cleanup_tmp
+endif
 
 [Winbatch_install]
-"$Setup$" /S
+"$LocalSetup$" /S
+
+[Files_copy_setup]
+copy "%ScriptPath%\files\software-center-setup.exe" "$TmpDir$\"
+
+[Files_cleanup_tmp]
+delete -f "$LocalSetup$"
 
 [Files_install_icons]
 copy "%ScriptPath%\icons\*.*" "%CommonAppDataDir%\opsi-kiosk\icons\"
