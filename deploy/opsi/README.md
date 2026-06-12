@@ -56,6 +56,15 @@ Das Software Center ersetzt den `opsi-client-kiosk`. Rollout-Reihenfolge:
    `on_demand`-Event **nicht** entfernen — das Software Center nutzt dieselbe
    Software-on-Demand-Mechanik wie der alte Kiosk, nur das UI ist neu.
 
+## Verknüpfungen
+
+Das Setup hinterlässt nur den **Startmenü-Eintrag** (NSIS-Standard); den
+Desktop-Link entfernt das opsiscript nach der Installation. Echtes „An Start
+anheften" (Win11-Pins) ist programmatisch gesperrt — wer das will, steuert es
+per GPO `ConfigureStartPins` (Start-Layout-JSON mit
+`"desktopAppLink": "%ALLUSERSPROFILE%\\Microsoft\\Windows\\Start Menu\\Programs\\Software Center.lnk"`).
+Achtung: diese Policy ersetzt die komplette Pin-Liste der Nutzer.
+
 ## Hinweise
 
 - Der NSIS-Installer ist auf `perMachine` konfiguriert und läuft sauber im

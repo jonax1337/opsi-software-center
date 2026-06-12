@@ -18,9 +18,8 @@ if FileExists("$InstallDir$\uninstall.exe")
 	Winbatch_uninstall
 endif
 
-comment "--- Reste entfernen ---"
+comment "--- Reste entfernen (Startmenue-/Desktop-Links raeumt der NSIS-Uninstaller) ---"
 Files_cleanup
-LinkFolder_remove
 
 [Winbatch_uninstall]
 "$InstallDir$\uninstall.exe" /S
@@ -28,8 +27,3 @@ LinkFolder_remove
 [Files_cleanup]
 delete -sf "$InstallDir$\"
 delete -sf "%CommonAppDataDir%\opsi-kiosk\"
-
-[LinkFolder_remove]
-set_basefolder common_desktopdirectory
-set_subfolder ""
-delete_element "Software Center"

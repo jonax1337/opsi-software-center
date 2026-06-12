@@ -29,8 +29,8 @@ endif
 comment "--- Produkt-Icons bereitstellen ---"
 Files_install_icons
 
-comment "--- Desktop-Verknuepfung ---"
-LinkFolder_install
+comment "--- Desktop-Link entfernen (Startmenue-Eintrag des Installers bleibt) ---"
+LinkFolder_remove_desktop
 
 [Winbatch_install]
 "$Setup$" /S
@@ -38,14 +38,7 @@ LinkFolder_install
 [Files_install_icons]
 copy "%ScriptPath%\icons\*.*" "%CommonAppDataDir%\opsi-kiosk\icons\"
 
-[LinkFolder_install]
+[LinkFolder_remove_desktop]
 set_basefolder common_desktopdirectory
 set_subfolder ""
-set_link
-	name: Software Center
-	target: $InstallDir$\Software Center.exe
-	parameters:
-	working_dir: $InstallDir$
-	icon_file:
-	icon_index:
-end_link
+delete_element "Software Center"
