@@ -2,10 +2,26 @@
 
 Leichtgewichtiger, moderner Ersatz für den opsi-client-kiosk: Endanwender installieren,
 aktualisieren und entfernen freigegebene Software selbst — ohne Admin-Rechte, ohne Ticket.
+Optik und Bedienung orientieren sich am Microsoft Intune Company Portal.
 
-Tauri 2 + Svelte 5 + Tailwind v4. Windows 11 Mica-Look, Hell-/Dunkel-Modus folgt dem System.
+Tauri 2 + Svelte 5 + Tailwind v4 · ~4,4 MB portable EXE · Windows 11 Mica,
+automatischer Hell-/Dunkel-Modus.
 
-![Stack](https://img.shields.io/badge/Tauri-2-blue) ![Svelte](https://img.shields.io/badge/Svelte-5-orange)
+## Features
+
+- **App-Kacheln** mit Produkt-Icons, Status (Installiert / Update verfügbar) und Suche/Filtern
+- **Detailseite pro App**: Beschreibung, Versionen, Abhängigkeiten — installiert wird hier,
+  nicht aus der Übersicht
+- **Sofortige Ausführung**: Installieren/Aktualisieren/Deinstallieren läuft direkt los
+  (setzt den Action-Request und feuert `processActionRequests` für genau dieses Produkt)
+- **„X Updates installieren"** Sammelaktion, sobald Updates verfügbar sind
+- **Sync** (Footer): holt den Serverstand und führt alle ausstehenden Action-Requests sofort
+  aus — z. B. Zuweisungen, die serverseitig über AD-Gruppen-Automatik gesetzt wurden
+- **Auto-Erkennung**: 5-Minuten-Hintergrund-Refresh; neue serverseitige Zuweisungen melden
+  sich per Toast („Jetzt ausführen")
+- **Status-Footer**: Verbindungsstatus + Client-FQDN, Depot, App-Anzahl, letzte Synchronisierung
+- **Demo-Modus**: ohne erreichbaren opsiclientd startet ein Mock-Katalog (gelber Punkt im
+  Footer); kompletter UI-Flow testbar, `OPSI_KIOSK_MOCK=1` erzwingt ihn
 
 ## Wie es funktioniert
 
@@ -16,50 +32,54 @@ offizielle opsi-client-kiosk verwendet:
 https://localhost:4441/kiosk   (JSON-RPC, unauthentifiziert von localhost)
 ```
 
-Verwendete Methoden:
-
 | Methode | Zweck |
 |---|---|
 | `getClientId` | opsi-Client-ID dieses Rechners |
 | `getConfigDataFromOpsiclientd` | Depot-ID, opsiclientd-Version |
 | `getKioskProductInfosForClient` | Produktkatalog + Installationsstatus |
-| `setProductActionRequestWithDependencies` | setup/uninstall vormerken (inkl. Abhängigkeiten) |
-| `processActionRequests` | vorgemerkte Aktionen sofort ausführen |
+| `setProductActionRequestWithDependencies` | setup/uninstall setzen (inkl. Abhängigkeiten) |
+| `processActionRequests` | Action-Requests sofort ausführen (ohne Liste: alle) |
 
-Ist kein opsiclientd erreichbar (Entwicklungsrechner), fällt das Backend automatisch in einen
-**Demo-Modus** mit Mock-Katalog zurück (erzwingbar via `OPSI_KIOSK_MOCK=1`).
+Fortschritt wird durch Re-Polling der Produktinfos beobachtet (5 s-Intervall, solange
+Requests offen sind). Abschluss-Toasts nennen die betroffenen Produkte.
 
 ## Voraussetzungen auf dem Client
 
-1. **opsi-client-agent 4.3** installiert (opsiclientd-Dienst läuft).
-2. **Kiosk-API aktiv** — Standard. Prüfen in `opsiclientd.conf`:
-   ```ini
-   [control_server]
-   kiosk_api_active = true
-   ```
-3. **Software-on-Demand konfiguriert** (serverseitig, pro Client oder global):
-   - Produktgruppe anlegen (z. B. `software-on-demand`) und Produkte zuordnen
-   - Config `software-on-demand.product-group-ids` auf diese Gruppe(n) setzen
-   - Damit „Jetzt ausführen" sofort wirkt: Event `on_demand` muss aktiv sein (Standard)
-4. **Diese App installieren** — sinnvollerweise als opsi-Produkt paketiert (NSIS/MSI liegt
-   nach `pnpm tauri:build` unter `src-tauri/target/release/bundle/`).
+1. **opsi-client-agent 4.3** (opsiclientd-Dienst läuft)
+2. **Kiosk-API aktiv** — Standard (`opsiclientd.conf` → `[control_server]` →
+   `kiosk_api_active = true`)
+3. **Software-on-Demand konfiguriert** (serverseitig): Produktgruppe(n) anlegen und
+   `software-on-demand.product-group-ids` darauf zeigen lassen; Event `on_demand` aktiv
+4. **WebView2-Runtime** (auf Windows 11 vorhanden)
 
-Keine Admin-Rechte, keine Zugangsdaten nötig: Die Kiosk-API ist von localhost ohne
-Authentifizierung erreichbar und zeigt ausschließlich die per Software-on-Demand
-freigegebenen Produkte.
+Keine Admin-Rechte, keine Zugangsdaten: Die Kiosk-API ist von localhost erreichbar und
+zeigt ausschließlich die per Software-on-Demand freigegebenen Produkte.
 
 ## Produkt-Icons
 
-Die Kiosk-JSON-RPC-API liefert **keine** Icons (der offizielle Kiosk lädt sie als Dateien vom
-Depot). Diese App sucht Icons stattdessen lokal, in dieser Reihenfolge:
+Die Kiosk-JSON-RPC-API liefert **keine** Icons. Die App sucht `<productId>.png`
+(auch `.ico/.jpg/.svg/.webp`) in dieser Reihenfolge:
 
-1. Verzeichnis aus Umgebungsvariable `OPSI_KIOSK_ICON_DIR`
-2. `%ProgramData%\opsi-kiosk\icons\`
+1. `OPSI_KIOSK_ICON_DIR` (Umgebungsvariable)
+2. `%ProgramData%\opsi-kiosk\icons\` ← **befüllt das opsi-Paket bei der Installation**
 3. `icons\` neben der EXE
+4. lokale opsi-client-kiosk-Installation (`ock_custom\product_icons`)
+5. Depot-Share `\\<depot>\opsi_depot\opsi-client-kiosk\files\app\ock_custom\product_icons\`
 
-Dateinamenskonvention: `<productId>.png` (auch `.ico`, `.jpg`, `.svg`, `.webp`).
-Das opsi-Paket, das die App verteilt, kann die Icons einfach mitliefern. Ohne Icon wird ein
-generisches Paket-Symbol angezeigt.
+Anders als beim alten Kiosk ist **keine `IconsList.txt` nötig** — Dateiname = Produkt-ID.
+Ohne Icon erscheint ein generisches Paketsymbol.
+
+## Deployment (opsi-Paket)
+
+Paketquellen unter [`deploy/opsi/`](deploy/opsi/README.md) — Localboot-Produkt
+`software-center` mit NSIS-Silent-Install (perMachine, SYSTEM-tauglich), Fast-Exit über die
+Uninstall-Registry (enforce-/Self-Healing-tauglich), Icon-Provisionierung und
+Startmenü-Eintrag ohne Desktop-Link.
+
+```powershell
+.\deploy\build-opsi-package.ps1   # sammelt den Installer ein
+# dann: deploy/opsi → opsi-Server, opsi-makepackage, opsi-package-manager -i
+```
 
 ## Entwicklung
 
@@ -67,13 +87,16 @@ generisches Paket-Symbol angezeigt.
 pnpm install
 pnpm tauri:dev      # App mit Hot-Reload (Demo-Modus ohne opsiclientd)
 pnpm check          # svelte-check
-pnpm tauri:build    # Release-Bundle (NSIS + MSI)
+pnpm tauri:build    # Release: portable EXE + NSIS-Setup + MSI
 ```
+
+Architektur-Details und Konventionen: [`CLAUDE.md`](CLAUDE.md).
 
 ## Sicherheit
 
-- Die App nutzt ausschließlich die lokale Kiosk-API — sie kann nur sehen und auslösen, was
-  serverseitig per Software-on-Demand freigegeben wurde.
-- TLS-Zertifikatsprüfung ist für `localhost:4441` deaktiviert (opsiclientd nutzt ein
-  selbstsigniertes Zertifikat); es wird nie ein entfernter Host kontaktiert.
-- Produkt-IDs werden vor Pfad-Verwendung (Icon-Lookup) gegen Traversal gefiltert.
+- Nur lokale Kiosk-API — sichtbar/auslösbar ist ausschließlich, was serverseitig per
+  Software-on-Demand freigegeben wurde
+- TLS-Prüfung ist nur für `localhost:4441` deaktiviert (selbstsigniertes
+  opsiclientd-Zertifikat); es wird nie ein entfernter Host kontaktiert (Ausnahme:
+  lesender Icon-Zugriff auf den Depot-Share)
+- Produkt-IDs werden vor Pfad-Verwendung (Icon-Lookup) gegen Traversal gefiltert
