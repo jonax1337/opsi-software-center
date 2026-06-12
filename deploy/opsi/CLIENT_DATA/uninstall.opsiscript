@@ -1,0 +1,35 @@
+; ----------------------------------------------------------------------
+; Software Center — uninstall
+; ----------------------------------------------------------------------
+[Actions]
+requiredWinstVersion >= "4.12.4"
+ScriptErrorMessages=off
+
+DefVar $InstallDir$
+
+Set $InstallDir$ = "%ProgramFiles64Dir%\Software Center"
+
+comment "--- laufende Instanzen beenden ---"
+Killtask "Software Center.exe"
+Killtask "opsi-kiosk.exe"
+
+comment "--- NSIS-Uninstaller ausfuehren ---"
+if FileExists("$InstallDir$\uninstall.exe")
+	Winbatch_uninstall
+endif
+
+comment "--- Reste entfernen ---"
+Files_cleanup
+LinkFolder_remove
+
+[Winbatch_uninstall]
+"$InstallDir$\uninstall.exe" /S
+
+[Files_cleanup]
+delete -sf "$InstallDir$\"
+delete -sf "%CommonAppDataDir%\opsi-kiosk\"
+
+[LinkFolder_remove]
+set_basefolder common_desktopdirectory
+set_subfolder ""
+delete_element "Software Center"

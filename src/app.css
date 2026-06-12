@@ -1,0 +1,310 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is([data-theme="dark"] *));
+
+:root {
+  --background: oklch(0.99 0.003 285);
+  --foreground: oklch(0.16 0.01 285);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.16 0.01 285);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.16 0.01 285);
+  /* Microsoft blue #0078D4 */
+  --primary: oklch(0.568 0.167 251);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.97 0.006 285);
+  --secondary-foreground: oklch(0.205 0.01 285);
+  --muted: oklch(0.97 0.006 285);
+  --muted-foreground: oklch(0.5 0.015 285);
+  --accent: oklch(0.96 0.012 285);
+  --accent-foreground: oklch(0.205 0.01 285);
+  --destructive: oklch(0.6 0.235 27);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.62 0.16 155);
+  --warning: oklch(0.74 0.16 75);
+  --border: oklch(0.92 0.006 285);
+  --input: oklch(0.92 0.006 285);
+  --ring: oklch(0.568 0.167 251);
+  --radius: 0.625rem;
+
+  /* Surface ladder — translucent foreground-tinted overlays for in-page chrome.
+     Use `bg-surface-1` for the lowest-emphasis surface (selectable-tile rest
+     state), `bg-surface-3` for hover variant, `bg-surface-4` for icon-tile chip,
+     `bg-surface-chrome` for titlebar / panel header. */
+  --surface-1: color-mix(in oklch, var(--foreground) 2%, transparent);
+  --surface-2: color-mix(in oklch, var(--foreground) 3%, transparent);
+  --surface-3: color-mix(in oklch, var(--foreground) 4%, transparent);
+  --surface-4: color-mix(in oklch, var(--foreground) 6%, transparent);
+  --surface-chrome: color-mix(in oklch, var(--foreground) 2.5%, transparent);
+  --hairline: color-mix(in oklch, var(--foreground) 8%, transparent);
+  --hairline-strong: color-mix(in oklch, var(--foreground) 10%, transparent);
+}
+
+[data-theme="dark"] body {
+  background-color: oklch(0.14 0.006 285 / 82%);
+}
+
+[data-theme="dark"] {
+  --background: oklch(0.13 0.012 285);
+  --foreground: oklch(0.985 0.003 285);
+  --card: oklch(0.18 0.015 285);
+  --card-foreground: oklch(0.985 0.003 285);
+  --popover: oklch(0.18 0.015 285);
+  --popover-foreground: oklch(0.985 0.003 285);
+  /* lighter Fluent blue for dark mode (#479EF5-ish) */
+  --primary: oklch(0.686 0.153 251);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.25 0.014 285);
+  --secondary-foreground: oklch(0.985 0.003 285);
+  --muted: oklch(0.22 0.012 285);
+  --muted-foreground: oklch(0.7 0.014 285);
+  --accent: oklch(0.27 0.018 285);
+  --accent-foreground: oklch(0.985 0.003 285);
+  --destructive: oklch(0.7 0.19 22);
+  --destructive-foreground: oklch(0.99 0 0);
+  --success: oklch(0.72 0.18 155);
+  --warning: oklch(0.78 0.16 75);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.686 0.153 251);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-4: var(--surface-4);
+  --color-surface-chrome: var(--surface-chrome);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --font-sans:
+    "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono:
+    "Geist Mono Variable", ui-monospace, "SF Mono", "Menlo", "Consolas", monospace;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body,
+  #app {
+    height: 100%;
+    margin: 0;
+  }
+  html {
+    background-color: transparent;
+  }
+  body {
+    background-color: oklch(0.99 0 0 / 94%);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background-color: var(--color-primary);
+    color: var(--color-primary-foreground);
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 8px;
+    border: 2px solid var(--color-background);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-muted-foreground);
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  h1 {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+  h2 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+  h3 {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+
+@layer utilities {
+  .hero-glow {
+    background: radial-gradient(
+      40rem 18rem at 10% -10%,
+      color-mix(in oklch, var(--primary) 14%, transparent),
+      transparent 70%
+    );
+  }
+  [data-theme="dark"] .hero-glow {
+    background: radial-gradient(
+      40rem 18rem at 10% -10%,
+      color-mix(in oklch, var(--primary) 22%, transparent),
+      transparent 70%
+    );
+  }
+
+  /* Status-tinted variants of hero-glow — used when the hero conveys a
+     binary state (e.g. licensed = success, unlicensed = warning) and the
+     default primary tint would clash with the in-card status badge. */
+  .hero-glow-success {
+    background: radial-gradient(
+      40rem 18rem at 10% -10%,
+      color-mix(in oklch, var(--success) 14%, transparent),
+      transparent 70%
+    );
+  }
+  [data-theme="dark"] .hero-glow-success {
+    background: radial-gradient(
+      40rem 18rem at 10% -10%,
+      color-mix(in oklch, var(--success) 22%, transparent),
+      transparent 70%
+    );
+  }
+
+  .hero-glow-warning {
+    background: radial-gradient(
+      40rem 18rem at 10% -10%,
+      color-mix(in oklch, oklch(0.74 0.16 75) 16%, transparent),
+      transparent 70%
+    );
+  }
+  [data-theme="dark"] .hero-glow-warning {
+    background: radial-gradient(
+      40rem 18rem at 10% -10%,
+      color-mix(in oklch, oklch(0.74 0.16 75) 22%, transparent),
+      transparent 70%
+    );
+  }
+
+  .card-inset {
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 30%) inset,
+      0 1px 3px 0 oklch(0 0 0 / 6%),
+      0 1px 0 0 oklch(0 0 0 / 3%);
+  }
+  [data-theme="dark"] .card-inset {
+    box-shadow:
+      0 1px 0 0 oklch(1 0 0 / 6%) inset,
+      0 2px 4px 0 oklch(0 0 0 / 30%);
+  }
+
+  @keyframes enter-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes route-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .animate-enter {
+    animation: enter-fade-up 220ms ease-out both;
+  }
+  .animate-route {
+    animation: route-fade-in 180ms ease-out both;
+  }
+  .stagger > * {
+    animation: enter-fade-up 220ms ease-out both;
+  }
+  .stagger > *:nth-child(1) { animation-delay: 0ms; }
+  .stagger > *:nth-child(2) { animation-delay: 30ms; }
+  .stagger > *:nth-child(3) { animation-delay: 60ms; }
+  .stagger > *:nth-child(4) { animation-delay: 90ms; }
+  .stagger > *:nth-child(5) { animation-delay: 120ms; }
+  .stagger > *:nth-child(6) { animation-delay: 150ms; }
+  .stagger > *:nth-child(7) { animation-delay: 180ms; }
+  .stagger > *:nth-child(8) { animation-delay: 210ms; }
+  .stagger > *:nth-child(n+9) { animation-delay: 240ms; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-enter,
+    .animate-route,
+    .stagger > * {
+      animation: none !important;
+    }
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+    /* Spinners are status feedback, not decoration — keep them turning even
+       under reduced motion (RDP sessions report it by default, and a frozen
+       spinner reads as a hung UI). */
+    .animate-spin {
+      animation-duration: 1s !important;
+    }
+  }
+}

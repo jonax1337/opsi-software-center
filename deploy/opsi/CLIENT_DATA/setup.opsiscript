@@ -1,0 +1,51 @@
+; ----------------------------------------------------------------------
+; Software Center — setup
+; Installiert den NSIS-Installer silent (perMachine) und legt die
+; Produkt-Icons unter %ProgramData%\opsi-kiosk\icons ab.
+; ----------------------------------------------------------------------
+[Actions]
+requiredWinstVersion >= "4.12.4"
+ScriptErrorMessages=off
+
+DefVar $InstallDir$
+DefVar $Setup$
+DefVar $ExitCode$
+
+Set $InstallDir$ = "%ProgramFiles64Dir%\Software Center"
+Set $Setup$ = "%ScriptPath%\files\software-center-setup.exe"
+
+comment "--- laufende Instanzen beenden ---"
+Killtask "Software Center.exe"
+Killtask "opsi-kiosk.exe"
+
+comment "--- Installer ausfuehren ---"
+Winbatch_install
+Set $ExitCode$ = getLastExitCode
+if not ($ExitCode$ = "0")
+	logError "NSIS-Setup beendete sich mit ExitCode " + $ExitCode$
+	isFatalError
+endif
+
+comment "--- Produkt-Icons bereitstellen ---"
+Files_install_icons
+
+comment "--- Desktop-Verknuepfung ---"
+LinkFolder_install
+
+[Winbatch_install]
+"$Setup$" /S
+
+[Files_install_icons]
+copy "%ScriptPath%\icons\*.*" "%CommonAppDataDir%\opsi-kiosk\icons\"
+
+[LinkFolder_install]
+set_basefolder common_desktopdirectory
+set_subfolder ""
+set_link
+	name: Software Center
+	target: $InstallDir$\Software Center.exe
+	parameters:
+	working_dir: $InstallDir$
+	icon_file:
+	icon_index:
+end_link

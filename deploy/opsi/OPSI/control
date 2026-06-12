@@ -1,0 +1,21 @@
+[Package]
+version: 1
+depends:
+
+[Product]
+type: localboot
+id: software-center
+name: Software Center
+description: Self-Service Software Center — moderner Ersatz für den opsi-client-kiosk (Software on Demand)
+advice:
+version: 0.1.0
+priority: 0
+licenseRequired: False
+productClasses:
+setupScript: setup.opsiscript
+uninstallScript: uninstall.opsiscript
+updateScript:
+alwaysScript:
+onceScript:
+customScript:
+userLoginScript:
