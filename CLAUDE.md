@@ -46,7 +46,16 @@ Light/dark follows the OS automatically (no manual toggle). Titlebar logo is a h
   processActionRequests([id]) in one go. `sync()` = refresh + processActionRequests(null)
   (= ALL pending requests, e.g. set server-side via AD-group→opsi automation). A 5-min
   background refresh detects new server-side assignments and offers a "Jetzt ausführen"
-  toast.
+  toast. `updateAll()` queues setup for every updatable product. Completion toasts name
+  the products (pollUntilDone tracks a `watched` map — never a generic "alle Aktionen").
+- **Grid sort**: products with available updates first, rest alphabetical (de locale).
+- **`deploy/opsi/`** — opsi package sources (control + opsiscripts). `deploy/
+  build-opsi-package.ps1` collects the NSIS installer into CLIENT_DATA. NSIS is
+  configured perMachine so it installs in the opsi-client-agent's SYSTEM context.
+  The package replaces the standard opsi-client-kiosk (uninstall via opsi, see
+  deploy/opsi/README.md).
+- **GitHub**: https://github.com/jonax1337/opsi-software-center (private — tile icon
+  is a stock asset with unclear license, don't make public without replacing it).
 - **`src-tauri/src/system.rs`** — `get_accent_color` (HKCU DWM AccentColor, ABGR u32).
 - **`src/lib/ui/`** — primitives copied from reclaim (see reclaim's
   `docs/DESIGN_SYSTEM.md` for the full token/primitive reference). Button's
