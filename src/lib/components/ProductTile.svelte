@@ -15,7 +15,7 @@
 <button
   type="button"
   {onclick}
-  class="flex flex-col items-start gap-3 p-4 rounded-xl border border-hairline-strong bg-card/95 backdrop-blur-md card-inset text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md cursor-pointer outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+  class="flex flex-col items-start gap-3 p-4 rounded-lg border border-hairline-strong bg-card shadow-sm text-left transition-colors duration-150 hover:bg-surface-3 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 >
   <div
     class="grid place-items-center size-14 rounded-lg bg-surface-3 border border-hairline overflow-hidden"

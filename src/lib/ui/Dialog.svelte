@@ -38,7 +38,7 @@
       )}
     >
       {#if title}
-        <DialogPrimitive.Title class="text-lg font-semibold leading-none tracking-tight">
+        <DialogPrimitive.Title class="text-lg font-semibold leading-none">
           {title}
         </DialogPrimitive.Title>
       {/if}

@@ -1,6 +1,6 @@
 [package]
 name = "opsi-kiosk"
-version = "0.1.2"
+version = "0.2.0"
 description = "Software Center — opsi software-on-demand client"
 authors = ["Jonas Laux IT-Services"]
 edition = "2021"

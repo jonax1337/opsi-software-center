@@ -25,7 +25,8 @@
   --border: oklch(0.92 0.006 285);
   --input: oklch(0.92 0.006 285);
   --ring: oklch(0.568 0.167 251);
-  --radius: 0.625rem;
+  /* Fluent control geometry: 4px controls (radius-sm), 8px cards (radius-lg). */
+  --radius: 0.5rem;
 
   /* Surface ladder — translucent foreground-tinted overlays for in-page chrome.
      Use `bg-surface-1` for the lowest-emphasis surface (selectable-tile rest
@@ -38,10 +39,13 @@
   --surface-chrome: color-mix(in oklch, var(--foreground) 2.5%, transparent);
   --hairline: color-mix(in oklch, var(--foreground) 8%, transparent);
   --hairline-strong: color-mix(in oklch, var(--foreground) 10%, transparent);
-}
 
-[data-theme="dark"] body {
-  background-color: oklch(0.14 0.006 285 / 82%);
+  /* Fluent motion curves (WinUI): decelerate for entrances, accelerate for
+     exits, standard for everything in between. Durations follow the Fluent
+     ramp — fast 150ms, normal 250ms, page 300ms. */
+  --ease-fluent-decel: cubic-bezier(0.1, 0.9, 0.2, 1);
+  --ease-fluent-accel: cubic-bezier(0.7, 0, 1, 0.5);
+  --ease-fluent-standard: cubic-bezier(0.8, 0, 0.2, 1);
 }
 
 [data-theme="dark"] {
@@ -105,10 +109,15 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  --font-sans:
-    "Geist Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* Native Windows 11 UI font. "Segoe UI Variable" is the actual installed
+     family (SegUIVar.ttf) — the per-optical-size names ("…Text"/"…Display")
+     are NOT addressable in WebView2 and would silently fall back to the old
+     static Segoe UI. With font-optical-sizing:auto the variable font picks the
+     Text/Display optical master itself per size. */
+  --font-sans: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-display: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
   --font-mono:
-    "Geist Mono Variable", ui-monospace, "SF Mono", "Menlo", "Consolas", monospace;
+    "Cascadia Mono", "Cascadia Code", ui-monospace, "Consolas", "SF Mono", "Menlo", monospace;
 }
 
 @layer base {
@@ -125,11 +134,13 @@
     background-color: transparent;
   }
   body {
-    background-color: oklch(0.99 0 0 / 94%);
+    /* Transparent so the native Mica backdrop shows as the app's base layer
+       (Win11-Settings style: cards are opaque layers over Mica). */
+    background-color: transparent;
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-optical-sizing: auto;
     font-size: 14px;
-    font-feature-settings: "cv11", "ss01";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -138,20 +149,24 @@
     background-color: var(--color-primary);
     color: var(--color-primary-foreground);
   }
+  /* Fluent overlay scrollbar: thin pill thumb, inset via transparent border,
+     no visible track. */
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 14px;
+    height: 14px;
   }
   ::-webkit-scrollbar-track {
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: var(--color-border);
-    border-radius: 8px;
-    border: 2px solid var(--color-background);
+    background: color-mix(in oklch, var(--foreground) 28%, transparent);
+    border-radius: 999px;
+    border: 4px solid transparent;
+    background-clip: padding-box;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-muted-foreground);
+    background: color-mix(in oklch, var(--foreground) 45%, transparent);
+    background-clip: padding-box;
   }
   button {
     cursor: pointer;
@@ -169,8 +184,11 @@
   h2,
   h3,
   h4 {
+    font-family: var(--font-display);
     font-weight: 600;
-    letter-spacing: -0.02em;
+    /* Segoe UI Variable Display handles optical tracking itself — no manual
+       negative letter-spacing (that reads as non-native). */
+    letter-spacing: normal;
   }
   h1 {
     font-size: 1.875rem;
@@ -250,33 +268,60 @@
   @keyframes enter-fade-up {
     from {
       opacity: 0;
-      transform: translateY(4px);
+      transform: translateY(8px);
     }
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
-  @keyframes route-fade-in {
+  /* WinUI page entrance: content slides up while fading in. */
+  @keyframes page-enter {
     from {
       opacity: 0;
+      transform: translateY(16px);
     }
     to {
       opacity: 1;
+      transform: translateY(0);
     }
+  }
+  /* WinUI DrillIn: scale up slightly from the surface while fading in. */
+  @keyframes drill-in {
+    from {
+      opacity: 0;
+      transform: scale(1.03);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
   @keyframes shimmer {
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }
   }
-  .animate-enter {
-    animation: enter-fade-up 220ms ease-out both;
+  /* Plain fade — used on containers whose children already stagger upward, so
+     the motion doesn't compound into a double-slide. */
+  .animate-fade {
+    animation: fade-in 250ms var(--ease-fluent-decel) both;
   }
-  .animate-route {
-    animation: route-fade-in 180ms ease-out both;
+  .animate-enter {
+    animation: enter-fade-up 300ms var(--ease-fluent-decel) both;
+  }
+  .animate-page {
+    animation: page-enter 300ms var(--ease-fluent-decel) both;
+  }
+  .animate-drill {
+    animation: drill-in 300ms var(--ease-fluent-decel) both;
+    transform-origin: center 35%;
   }
   .stagger > * {
-    animation: enter-fade-up 220ms ease-out both;
+    animation: enter-fade-up 300ms var(--ease-fluent-decel) both;
   }
   .stagger > *:nth-child(1) { animation-delay: 0ms; }
   .stagger > *:nth-child(2) { animation-delay: 30ms; }

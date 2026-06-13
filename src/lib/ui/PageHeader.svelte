@@ -15,7 +15,7 @@
 <header class="mb-6 flex flex-wrap items-end justify-between gap-4">
   <div class="min-w-0">
     {#if above}{@render above()}{/if}
-    <h1 class="text-3xl font-semibold tracking-tight">{title}</h1>
+    <h1 class="text-3xl font-semibold">{title}</h1>
     {#if children}
       <p class="text-sm text-muted-foreground mt-1">{@render children()}</p>
     {:else if description}

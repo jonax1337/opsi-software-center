@@ -49,7 +49,7 @@
   </div>
 
   <div class="flex-1 min-w-0 self-center">
-    <h1 class="text-2xl font-semibold tracking-tight truncate leading-tight">
+    <h1 class="text-2xl font-semibold truncate leading-tight">
       {product.productName || product.productId}
     </h1>
     <div class="mt-1 text-sm text-muted-foreground font-mono tabular-nums">

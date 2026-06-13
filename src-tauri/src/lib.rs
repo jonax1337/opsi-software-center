@@ -1,5 +1,7 @@
 mod device;
+mod inventory;
 mod kiosk;
+mod system;
 
 pub fn run() {
     tauri::Builder::default()
@@ -12,6 +14,10 @@ pub fn run() {
             kiosk::kiosk_get_icons,
             device::device_gpupdate,
             device::device_pending_reboot,
+            device::device_flush_dns,
+            device::device_gpresult_report,
+            system::get_accent_color,
+            inventory::get_system_info,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -1,6 +1,6 @@
 {
   "name": "opsi-kiosk",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Software Center — lightweight opsi software-on-demand client",
   "type": "module",
   "scripts": {
@@ -13,8 +13,6 @@
     "tauri:build": "tauri build"
   },
   "dependencies": {
-    "@fontsource-variable/geist": "^5.2.8",
-    "@fontsource-variable/geist-mono": "^5.2.7",
     "@lucide/svelte": "^1.16.0",
     "@tauri-apps/api": "^2.1.1",
     "bits-ui": "^1.3.0",

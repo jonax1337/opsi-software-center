@@ -35,7 +35,7 @@
   {oninput}
   {onchange}
   class={cn(
-    "w-full h-9 rounded-md border border-input bg-card px-3 text-sm outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px] focus-visible:border-ring disabled:opacity-60",
+    "w-full h-8 rounded-sm border border-hairline-strong bg-surface-2 px-3 text-sm outline-none transition-[box-shadow,border-color,background-color] hover:bg-surface-3 focus-visible:border-primary/40 focus-visible:[box-shadow:inset_0_-2px_0_0_var(--primary)] disabled:opacity-60",
     mono && "font-mono",
     klass,
   )}
