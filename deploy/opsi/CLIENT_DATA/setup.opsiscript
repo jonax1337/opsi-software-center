@@ -15,7 +15,7 @@ DefVar $TmpDir$
 DefVar $LocalSetup$
 DefVar $ExitCode$
 
-Set $ProductVersion$ = "0.1.0"
+Set $ProductVersion$ = "0.1.1"
 Set $InstallDir$ = "%ProgramFiles64Dir%\Software Center"
 Set $TmpDir$ = "%CommonAppDataDir%\ITGG\tmp"
 Set $LocalSetup$ = $TmpDir$ + "\software-center-setup.exe"

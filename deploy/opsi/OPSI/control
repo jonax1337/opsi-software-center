@@ -1,5 +1,5 @@
 [Package]
-version: 2
+version: 1
 depends:
 
 [Product]
@@ -8,7 +8,7 @@ id: software-center
 name: Software Center
 description: Self-Service Software Center — moderner Ersatz für den opsi-client-kiosk (Software on Demand)
 advice:
-version: 0.1.0
+version: 0.1.1
 priority: 0
 licenseRequired: False
 productClasses:

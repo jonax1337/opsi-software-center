@@ -8,7 +8,7 @@
     Trash2,
     X,
   } from "@lucide/svelte";
-  import { Badge, Button, Card, CardContent, DataField, InfoBanner, SectionHeading } from "$lib/ui";
+  import { Badge, Button, Card, CardContent, DataField, SectionHeading } from "$lib/ui";
   import { kiosk } from "$lib/kiosk/store.svelte";
   import type { KioskProduct } from "$lib/kiosk/types";
 
@@ -127,9 +127,7 @@
   </div>
 </div>
 
-{#if product.advice}
-  <InfoBanner tone="warning" class="mb-6">{product.advice}</InfoBanner>
-{/if}
+<!-- product.advice is admin-only packaging info (visible in opsi-configed) — never shown to end users -->
 
 {#if product.description}
   <SectionHeading title="Beschreibung" />
