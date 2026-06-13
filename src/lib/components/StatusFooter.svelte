@@ -34,6 +34,12 @@
   {#if !kiosk.loading}
     <span class="hidden md:inline tabular-nums">{kiosk.products.length} Apps</span>
   {/if}
+  {#if kiosk.rebootPending}
+    <span class="inline-flex items-center gap-1.5 text-amber-600 dark:text-amber-500 font-medium">
+      <span class="size-1.5 rounded-full bg-amber-500 shrink-0"></span>
+      Neustart ausstehend
+    </span>
+  {/if}
 
   <span class="flex-1"></span>
 

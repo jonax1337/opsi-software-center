@@ -1,3 +1,4 @@
+mod device;
 mod kiosk;
 
 pub fn run() {
@@ -9,6 +10,8 @@ pub fn run() {
             kiosk::kiosk_set_action,
             kiosk::kiosk_process_actions,
             kiosk::kiosk_get_icons,
+            device::device_gpupdate,
+            device::device_pending_reboot,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

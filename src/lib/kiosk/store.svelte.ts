@@ -1,4 +1,6 @@
 import {
+  deviceGpupdate,
+  devicePendingReboot,
   isTauri,
   kioskGetIcons,
   kioskGetProducts,
@@ -34,6 +36,8 @@ class KioskStore {
   icons = $state<Record<string, string>>({});
   syncing = $state(false);
   lastSync = $state<Date | null>(null);
+  /** Windows reboot pending (opsi's own prompt is suppressed fleet-wide) */
+  rebootPending = $state(false);
   /** pending productIds the user has already been notified about */
   private notifiedPending = new Set<string>();
 
@@ -109,10 +113,12 @@ class KioskStore {
   }
 
   /** Sync like Company Portal: refresh from the server, then execute every
-   *  pending action request immediately. */
+   *  pending action request immediately. A group-policy refresh runs in
+   *  parallel and reports back without blocking the sync spinner. */
   async sync() {
     if (this.syncing) return;
     this.syncing = true;
+    if (this.status?.connected && !this.status.mock) void this.gpupdate();
     try {
       await this.refresh();
       if (this.pending.length && !this.processing) {
@@ -127,6 +133,31 @@ class KioskStore {
     }
   }
 
+  /** gpupdate for both scopes; only failures surface as a toast. */
+  private async gpupdate() {
+    try {
+      const r = await deviceGpupdate();
+      if (!r.computer || !r.user) {
+        const failed = [!r.computer && "Computer", !r.user && "Benutzer"].filter(Boolean);
+        toast.error(
+          "Gruppenrichtlinien-Aktualisierung fehlgeschlagen",
+          `Bereich: ${failed.join(", ")}`,
+        );
+      }
+    } catch {
+      // gpupdate is best-effort — opsi sync result matters more
+    }
+    void this.refreshRebootPending();
+  }
+
+  private async refreshRebootPending() {
+    try {
+      this.rebootPending = await devicePendingReboot();
+    } catch {
+      this.rebootPending = false;
+    }
+  }
+
   async refresh() {
     this.products = await kioskGetProducts();
     try {
@@ -137,6 +168,7 @@ class KioskStore {
     } catch {
       // icons are optional
     }
+    void this.refreshRebootPending();
   }
 
   /** Set the action request and execute it right away. */
