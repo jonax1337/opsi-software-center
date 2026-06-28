@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { FileText, Globe, Loader2, RefreshCw, RotateCw } from "@lucide/svelte";
+  import { FileText, Globe, Loader2, Power, RefreshCw, RotateCw } from "@lucide/svelte";
   import { getVersion } from "@tauri-apps/api/app";
   import {
     Button,
@@ -20,10 +20,13 @@
     type SystemInfo,
   } from "$lib/kiosk/bridge";
   import { kiosk } from "$lib/kiosk/store.svelte";
+  import { autostartEnabled, setAutostart } from "$lib/system/desktop";
 
   let sys = $state<SystemInfo | null>(null);
   let sysLoading = $state(false);
   let appVersion = $state<string | null>(null);
+  let autostart = $state(false);
+  let autostartBusy = $state(false);
 
   $effect(() => {
     if (!isTauri()) return;
@@ -35,7 +38,27 @@
     getVersion()
       .then((v) => (appVersion = v))
       .catch(() => {});
+    autostartEnabled()
+      .then((on) => (autostart = on))
+      .catch(() => {});
   });
+
+  async function toggleAutostart() {
+    autostartBusy = true;
+    try {
+      autostart = await setAutostart(!autostart);
+      toast.success(
+        autostart ? "Autostart aktiviert" : "Autostart deaktiviert",
+        autostart
+          ? "Das Software Center startet künftig automatisch im Infobereich."
+          : "Das Software Center startet nicht mehr automatisch.",
+      );
+    } catch {
+      toast.error("Autostart konnte nicht geändert werden");
+    } finally {
+      autostartBusy = false;
+    }
+  }
 
   const conn = $derived.by(() => {
     if (!isTauri()) return { dot: "bg-muted-foreground", label: "Browser-Vorschau" };
@@ -243,6 +266,30 @@
       {#if appVersion}
         <DataField label="Software Center" value={`v${appVersion}`} mono />
       {/if}
+    </div>
+  </CardContent>
+</Card>
+
+<!-- Einstellungen -->
+<SectionHeading title="Einstellungen" />
+<Card class="card-inset mb-6">
+  <CardContent>
+    <div class="flex items-center justify-between gap-4">
+      <div class="min-w-0">
+        <p class="text-sm font-medium">Automatisch starten</p>
+        <p class="text-sm text-muted-foreground">
+          Beim Anmelden im Hintergrund (Infobereich) starten und auf Updates prüfen.
+        </p>
+      </div>
+      <Button
+        variant={autostart ? "default" : "outline"}
+        size="sm"
+        disabled={!isTauri() || autostartBusy}
+        onclick={toggleAutostart}
+      >
+        {#if autostartBusy}<Loader2 class="size-4 animate-spin" />{:else}<Power class="size-4" />{/if}
+        {autostart ? "Aktiviert" : "Deaktiviert"}
+      </Button>
     </div>
   </CardContent>
 </Card>

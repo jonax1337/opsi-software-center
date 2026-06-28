@@ -10,6 +10,12 @@ import {
 } from "./bridge";
 import type { ActionRequest, KioskProduct, KioskStatus } from "./types";
 import { toast } from "$lib/ui/toast.svelte";
+import {
+  ensureAutostartDefault,
+  initNotifications,
+  notify,
+  onTrayCheckUpdates,
+} from "$lib/system/desktop";
 
 export type Filter = "all" | "installed" | "available" | "updates";
 
@@ -40,6 +46,8 @@ class KioskStore {
   rebootPending = $state(false);
   /** pending productIds the user has already been notified about */
   private notifiedPending = new Set<string>();
+  /** updatable productIds already surfaced as a native notification this session */
+  private notifiedUpdates = new Set<string>();
 
   pending = $derived(this.products.filter(isPending));
 
@@ -74,6 +82,11 @@ class KioskStore {
       this.loading = false;
       return;
     }
+    // Desktop integration: launch at login by default, ask for notification
+    // permission, and let the tray menu trigger a sync.
+    void ensureAutostartDefault();
+    void initNotifications();
+    void onTrayCheckUpdates(() => void this.sync());
     try {
       this.status = await kioskStatus();
       await this.refresh();
@@ -81,12 +94,32 @@ class KioskStore {
       // requests left over from a previous session (or set by an admin):
       // resume polling so their completion is reflected
       if (this.pending.length) void this.pollUntilDone();
+      // surface any updates that are already waiting at startup
+      this.notifyNewUpdates();
       setInterval(() => void this.backgroundRefresh(), AUTO_REFRESH_MS);
     } catch (err) {
       toast.error("Verbindung zum opsi-Client-Dienst fehlgeschlagen", String(err));
     } finally {
       this.loading = false;
     }
+  }
+
+  /** Send one native notification for updates not yet announced this session.
+   *  Used both at startup and on every background refresh, so a newly published
+   *  update reaches the user even while the window is hidden in the tray. */
+  private notifyNewUpdates() {
+    const fresh = this.updatable.filter((p) => !this.notifiedUpdates.has(p.productId));
+    if (!fresh.length) return;
+    fresh.forEach((p) => this.notifiedUpdates.add(p.productId));
+    const title =
+      fresh.length === 1 ? "Update verfügbar" : `${fresh.length} Updates verfügbar`;
+    const names = fresh.map((p) => p.productName || p.productId).join(", ");
+    void notify(
+      title,
+      fresh.length === 1
+        ? `Für ${names} steht eine Aktualisierung bereit.`
+        : `Aktualisierungen bereit: ${names}`,
+    );
   }
 
   /** Periodic refresh: surfaces software assigned server-side (e.g. through AD
@@ -102,14 +135,21 @@ class KioskStore {
     const fresh = this.pending.filter((p) => !this.notifiedPending.has(p.productId));
     if (fresh.length) {
       fresh.forEach((p) => this.notifiedPending.add(p.productId));
-      toast.action(
+      const label =
         fresh.length === 1
           ? `Neue Zuweisung: ${fresh[0].productName || fresh[0].productId}`
-          : `${fresh.length} neue Software-Zuweisungen`,
+          : `${fresh.length} neue Software-Zuweisungen`;
+      toast.action(
+        label,
         { label: "Jetzt ausführen", onClick: () => void this.sync() },
         { description: "Diesem Computer wurde Software zugewiesen." },
       );
+      // native toast too — the window is usually hidden in the tray
+      void notify(label, "Diesem Computer wurde Software zugewiesen.");
     }
+
+    // newly published updates for installed apps
+    this.notifyNewUpdates();
   }
 
   /** Sync like Company Portal: refresh from the server, then execute every

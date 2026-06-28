@@ -17,8 +17,14 @@ automatischer Hell-/Dunkel-Modus.
 - **„X Updates installieren"** Sammelaktion, sobald Updates verfügbar sind
 - **Sync** (Footer): holt den Serverstand und führt alle ausstehenden Action-Requests sofort
   aus — z. B. Zuweisungen, die serverseitig über AD-Gruppen-Automatik gesetzt wurden
-- **Auto-Erkennung**: 5-Minuten-Hintergrund-Refresh; neue serverseitige Zuweisungen melden
-  sich per Toast („Jetzt ausführen")
+- **Läuft im Infobereich (System-Tray)**: bleibt dauerhaft per Tray-Icon erreichbar;
+  Fenster-Schließen blendet nur in den Tray aus (Beenden ausschließlich über das Tray-Menü),
+  Linksklick holt es zurück. Nur eine Instanz gleichzeitig.
+- **Autostart beim Anmelden** (standardmäßig an, im Tray minimiert) — abschaltbar unter
+  *Info → Einstellungen*
+- **Auto-Erkennung + Benachrichtigungen**: 5-Minuten-Hintergrund-Refresh; neue serverseitige
+  Zuweisungen und verfügbare Updates melden sich per **nativer Windows-Benachrichtigung**
+  (und, bei offenem Fenster, per Toast „Jetzt ausführen")
 - **Status-Footer**: Verbindungsstatus + Client-FQDN, Depot, App-Anzahl, letzte Synchronisierung
 - **Demo-Modus**: ohne erreichbaren opsiclientd startet ein Mock-Katalog (gelber Punkt im
   Footer); kompletter UI-Flow testbar, `OPSI_KIOSK_MOCK=1` erzwingt ihn

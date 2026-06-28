@@ -17,8 +17,9 @@ Light/dark follows the OS automatically (no manual toggle). Titlebar logo is a h
 |---|---|
 | Frontend | Svelte 5 (runes only), TypeScript strict, Vite 6, Tailwind v4, bits-ui |
 | Rust | Tauri 2 + reqwest (rustls, `danger_accept_invalid_certs` for localhost self-signed) |
-| Persistence | localStorage (theme only) |
-| Window | Mica via `windowEffects`, custom titlebar (`decorations: false`), port 1430 |
+| Persistence | localStorage (theme + `autostart-initialized` flag) |
+| Window | Mica via `windowEffects`, native decorations, starts hidden (`visible:false`), port 1430 |
+| Tray | Permanent tray icon; single-instance; autostart at login (`--minimized`); native notifications |
 
 ## Architecture
 
@@ -56,6 +57,26 @@ Light/dark follows the OS automatically (no manual toggle). Titlebar logo is a h
   deploy/opsi/README.md).
 - **GitHub**: https://github.com/jonax1337/opsi-software-center (private — tile icon
   is a stock asset with unclear license, don't make public without replacing it).
+- **`src-tauri/src/tray.rs`** — system-tray icon + menu (Öffnen / Nach Updates suchen /
+  Beenden). Left-click reveals the window; "Nach Updates suchen" emits the
+  `tray://check-updates` event (store listens → `sync()`). `show_main()` is the shared
+  reveal helper.
+- **Tray/autostart/single-instance (`lib.rs`)** — the app lives in the tray permanently:
+  `CloseRequested` only `hide()`s the window (`prevent_close`), so **quitting is only via the
+  tray "Beenden"** (`app.exit`). `tauri-plugin-single-instance` (registered FIRST) reveals the
+  running window on a second launch. `tauri-plugin-autostart` (LaunchAgent + `--minimized`
+  flag) registers per-user HKCU Run; when started with `--minimized` the window stays hidden.
+  The window is `visible:false` in config and shown in `setup()` only when not autostarted (no
+  flash). Notifications via `tauri-plugin-notification`.
+- **`src/lib/system/desktop.ts`** — frontend wrappers for the above: `ensureAutostartDefault`
+  (enables autostart once on first run, then respects manual choice via the
+  `autostart-initialized` localStorage flag), `autostartEnabled`/`setAutostart` (Info →
+  Einstellungen toggle), `initNotifications`/`notify` (native OS toast — used because the
+  window is usually hidden in the tray), `onTrayCheckUpdates`. All no-op in browser preview.
+- **Update notifications** — `store.notifyNewUpdates()` fires a native notification for any
+  `updatable` product not yet announced this session (tracked in `notifiedUpdates`); called at
+  startup and on every 5-min `backgroundRefresh`. New server-side assignments also get a native
+  notification alongside the in-app toast.
 - **`src-tauri/src/system.rs`** — `get_accent_color` (HKCU DWM AccentColor, ABGR u32).
 - **`src/lib/ui/`** — primitives copied from reclaim (see reclaim's
   `docs/DESIGN_SYSTEM.md` for the full token/primitive reference). Button's
