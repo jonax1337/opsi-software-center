@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
-  import { RefreshCw, Unplug } from "@lucide/svelte";
+  import { ArrowSync, PlugDisconnected } from "$lib/ui/icons";
   import { Button, EmptyState, InfoBanner } from "$lib/ui";
   import { kiosk } from "$lib/kiosk/store.svelte";
   import { isTauri } from "$lib/kiosk/bridge";
@@ -19,7 +19,7 @@
   <EmptyState loading>Apps werden geladen…</EmptyState>
 {:else if !kiosk.connected}
   <div class="grid place-items-center py-20 text-center">
-    <Unplug class="mb-3 size-8 text-muted-foreground" />
+    <PlugDisconnected class="mb-3 size-8 text-muted-foreground" />
     <h2 class="text-base font-semibold">Keine Verbindung zum opsi-Client-Dienst</h2>
     <p class="mt-1 max-w-md text-sm text-muted-foreground">
       Der Dienst „opsiclientd" antwortet nicht. Kurz nach dem Anmelden startet er manchmal noch —
@@ -31,7 +31,7 @@
       </p>
     {/if}
     <Button class="mt-5" variant="outline" onclick={() => kiosk.retry()}>
-      <RefreshCw class="size-4" />
+      <ArrowSync class="size-4" />
       Erneut versuchen
     </Button>
   </div>

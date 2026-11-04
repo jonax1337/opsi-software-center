@@ -1,3 +1,4 @@
+mod catalog;
 mod config;
 mod device;
 mod icons;
@@ -68,6 +69,7 @@ pub fn run() {
             kiosk::kiosk_set_action,
             kiosk::kiosk_process_actions,
             icons::kiosk_get_icons,
+            catalog::kiosk_get_catalog,
             config::get_branding,
             config::open_support_contact,
             device::device_gpupdate,

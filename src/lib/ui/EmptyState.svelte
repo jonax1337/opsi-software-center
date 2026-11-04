@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Component, Snippet } from "svelte";
-  import { Loader2 } from "@lucide/svelte";
+  import { Spinner } from "$lib/ui/icons";
   import Card from "./Card.svelte";
   import { cn } from "$lib/utils";
 
@@ -19,7 +19,7 @@
 {#if bare}
   <div class={cn("grid place-items-center py-24 text-sm text-muted-foreground", klass)}>
     {#if loading}
-      <Loader2 class={cn("size-6 animate-spin mb-2", iconClass)} />
+      <Spinner class={cn("size-6 animate-spin mb-2", iconClass)} />
     {:else if Icon}
       <Icon class={cn("size-6 mb-2", iconClass)} />
     {/if}

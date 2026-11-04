@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { Globe, Mail, Phone } from "@lucide/svelte";
+  import { Call, Globe, Mail } from "$lib/ui/icons";
   import { Card, CardContent, DataField, PageHeader, SectionHeading, toast } from "$lib/ui";
   import { isTauri, openSupportContact, type SupportChannel } from "$lib/kiosk/bridge";
   import { kiosk } from "$lib/kiosk/store.svelte";
@@ -18,7 +18,7 @@
   const branding = $derived(kiosk.branding);
   const contacts = $derived(
     [
-      { channel: "phone" as const, icon: Phone, label: "Telefon", value: branding.supportPhone },
+      { channel: "phone" as const, icon: Call, label: "Telefon", value: branding.supportPhone },
       { channel: "email" as const, icon: Mail, label: "E-Mail", value: branding.supportEmail },
       { channel: "website" as const, icon: Globe, label: "Website", value: branding.supportUrl },
     ].filter((c) => c.value.trim()),

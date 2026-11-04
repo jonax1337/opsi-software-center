@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { Laptop } from "@lucide/svelte";
+  import { Laptop } from "$lib/ui/icons";
   import { Card, CardContent, DataField, PageHeader, SectionHeading } from "$lib/ui";
   import SupportTools from "$lib/components/SupportTools.svelte";
   import { systemInfo } from "$lib/system/systemInfo.svelte";

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
   import { Dialog as DialogPrimitive } from "bits-ui";
-  import { X } from "@lucide/svelte";
+  import { Dismiss } from "$lib/ui/icons";
   import { cn } from "$lib/utils";
 
   type Props = {
@@ -54,7 +54,7 @@
       <DialogPrimitive.Close
         class="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none"
       >
-        <X class="size-4" />
+        <Dismiss class="size-4" />
         <span class="sr-only">Close</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>

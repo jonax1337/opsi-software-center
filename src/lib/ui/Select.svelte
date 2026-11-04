@@ -4,7 +4,7 @@
 
 <script lang="ts">
   import { Select } from "bits-ui";
-  import { Check, ChevronDown } from "@lucide/svelte";
+  import { Checkmark, ChevronDown } from "$lib/ui/icons";
   import { cn } from "$lib/utils";
 
   /** Fluent ComboBox: 32px trigger with chevron, popup list with an accent
@@ -55,7 +55,7 @@
               {/if}
               <span class="truncate">{option.label}</span>
               {#if selected}
-                <Check class="absolute right-2 size-4 text-muted-foreground" />
+                <Checkmark class="absolute right-2 size-4 text-muted-foreground" />
               {/if}
             {/snippet}
           </Select.Item>

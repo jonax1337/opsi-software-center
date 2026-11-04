@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { LayoutGrid, List, SearchX } from "@lucide/svelte";
+  import { Grid, SearchInfo, TextBulletList } from "$lib/ui/icons";
   import { EmptyState, PageHeader, Select } from "$lib/ui";
   import ProductCollection, { type Layout } from "$lib/components/ProductCollection.svelte";
   import { kiosk } from "$lib/kiosk/store.svelte";
-  import { selectProducts, type Filter } from "$lib/kiosk/product";
+  import { categoriesOf, selectProducts, type Filter, type Sort } from "$lib/kiosk/product";
   import { cn } from "$lib/utils";
 
   let { onopen }: { onopen: (productId: string) => void } = $props();
@@ -15,6 +15,15 @@
     { value: "available", label: "Nicht installierte Apps" },
     { value: "updates", label: "Updates verfügbar" },
   ];
+
+  const SORTS: { value: Sort; label: string }[] = [
+    { value: "name-asc", label: "Name (A–Z)" },
+    { value: "name-desc", label: "Name (Z–A)" },
+    { value: "publisher-asc", label: "Herausgeber (A–Z)" },
+    { value: "publisher-desc", label: "Herausgeber (Z–A)" },
+  ];
+  /** Picker value for "no category filter" (the store keeps "" for that). */
+  const ALL_CATEGORIES = "*";
 
   let layout = $state<Layout>(readLayout());
 
@@ -41,32 +50,55 @@
   const filterOptions = $derived(
     FILTERS.map((f) => ({
       value: f.value,
-      label: `${f.label} (${selectProducts(kiosk.products, f.value, kiosk.search).length})`,
+      label: `${f.label} (${selectProducts(kiosk.products, f.value, kiosk.search, kiosk.catalog).length})`,
     })),
   );
+  const categoryOptions = $derived([
+    { value: ALL_CATEGORIES, label: "Alle Kategorien" },
+    ...categoriesOf(kiosk.products, kiosk.catalog).map((c) => ({ value: c.name, label: c.name })),
+  ]);
+  const hasPublishers = $derived(Object.values(kiosk.catalog).some((e) => e.publisher));
+  const sortOptions = $derived(hasPublishers ? SORTS : SORTS.filter((s) => s.value.startsWith("name")));
 
   function setFilter(value: string) {
     const match = FILTERS.find((f) => f.value === value);
     if (match) kiosk.filter = match.value;
   }
+
+  function setSort(value: string) {
+    const match = SORTS.find((s) => s.value === value);
+    if (match) kiosk.sort = match.value;
+  }
 </script>
 
 <PageHeader {title}>
-  {kiosk.filtered.length === 1 ? "1 App" : `${kiosk.filtered.length} Apps`}
+  {kiosk.filtered.length === 1 ? "1 Ergebnis" : `${kiosk.filtered.length} Ergebnisse`}
 </PageHeader>
 
 <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
-  <div class="flex items-center gap-2 text-sm">
-    <span class="text-muted-foreground">Anzeigen:</span>
-    <Select
-      label="Apps filtern"
-      value={kiosk.filter}
-      options={filterOptions}
-      onchange={setFilter}
-    />
+  <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+    <span class="flex items-center gap-2">
+      <span class="text-muted-foreground">Anzeigen:</span>
+      <Select label="Apps filtern" value={kiosk.filter} options={filterOptions} onchange={setFilter} />
+    </span>
+    {#if categoryOptions.length > 1}
+      <span class="flex items-center gap-2">
+        <span class="text-muted-foreground">Kategorie:</span>
+        <Select
+          label="Nach Kategorie filtern"
+          value={kiosk.category || ALL_CATEGORIES}
+          options={categoryOptions}
+          onchange={(v) => (kiosk.category = v === ALL_CATEGORIES ? "" : v)}
+        />
+      </span>
+    {/if}
+    <span class="flex items-center gap-2">
+      <span class="text-muted-foreground">Sortieren nach:</span>
+      <Select label="Sortieren nach" value={kiosk.sort} options={sortOptions} onchange={setSort} />
+    </span>
   </div>
 
-  {#snippet layoutButton(value: Layout, label: string, Icon: typeof List)}
+  {#snippet layoutButton(value: Layout, label: string, Icon: typeof TextBulletList)}
     <button
       type="button"
       aria-label={label}
@@ -82,13 +114,13 @@
     </button>
   {/snippet}
   <div class="flex items-center gap-1" role="group" aria-label="Ansicht">
-    {@render layoutButton("tiles", "Kachelansicht", LayoutGrid)}
-    {@render layoutButton("list", "Listenansicht", List)}
+    {@render layoutButton("tiles", "Kachelansicht", Grid)}
+    {@render layoutButton("list", "Listenansicht", TextBulletList)}
   </div>
 </div>
 
 {#if kiosk.filtered.length === 0}
-  <EmptyState icon={SearchX}>
+  <EmptyState icon={SearchInfo}>
     {kiosk.products.length === 0
       ? "Für diesen Computer ist noch keine Software freigegeben."
       : "Keine Apps für diese Auswahl gefunden."}

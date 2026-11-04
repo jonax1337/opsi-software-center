@@ -3,8 +3,7 @@
 </script>
 
 <script lang="ts">
-  import { ListCard } from "$lib/ui";
-  import ProductRow from "./ProductRow.svelte";
+  import ProductTable from "./ProductTable.svelte";
   import ProductTile from "./ProductTile.svelte";
   import type { KioskProduct } from "$lib/kiosk/types";
 
@@ -17,13 +16,9 @@
 </script>
 
 {#if layout === "list"}
-  <ListCard>
-    {#each products as product (product.productId)}
-      <ProductRow {product} onclick={() => onopen(product.productId)} />
-    {/each}
-  </ListCard>
+  <ProductTable {products} {onopen} />
 {:else}
-  <div class="grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-1 stagger">
+  <div class="grid grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-3 stagger">
     {#each products as product (product.productId)}
       <ProductTile {product} onclick={() => onopen(product.productId)} />
     {/each}

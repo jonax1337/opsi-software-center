@@ -1,4 +1,4 @@
-/** German display formatting for the Help & Support page. Pure — `now` is a parameter. */
+/** German display formatting (device, account, title bar). Pure — `now` is a parameter. */
 
 const LOCALE = "de-DE";
 const HOUR_MS = 3_600_000;
@@ -12,6 +12,14 @@ export const EM_DASH = "—";
 export function presentOrUndefined(s?: string | null): string | undefined {
   const trimmed = s?.trim();
   return trimmed ? trimmed : undefined;
+}
+
+/** Avatar initials like Windows: first + last word of the display name
+ *  ("Erika Mustermann" → "EM"), else the first letter of the account name. */
+export function initials(displayName: string, username: string): string {
+  const words = displayName.trim().split(/\s+/).filter(Boolean);
+  if (words.length >= 2) return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+  return (words[0] ?? username.trim()).slice(0, 1).toUpperCase();
 }
 
 export function formatDateTime(iso: string): string {

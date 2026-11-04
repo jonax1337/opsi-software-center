@@ -19,7 +19,7 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
 | Frontend | Svelte 5 (runes only), TypeScript strict, Vite 6, Tailwind v4, bits-ui |
 | Rust | Tauri 2 + reqwest (rustls, `danger_accept_invalid_certs` for localhost self-signed) |
 | Persistence | localStorage (theme + `autostart-initialized` flag) |
-| Window | Mica via `windowEffects`, native decorations, starts hidden (`visible:false`), port 1430 |
+| Window | Mica via `windowEffects`, `decorations:false` + own Company-Portal title bar (`TitleBar.svelte`, caption buttons via `windowControls`), starts hidden (`visible:false`), port 1430 |
 | Tray | Permanent tray icon; single-instance; autostart at login (`--minimized`); native notifications |
 
 ## Architecture
@@ -34,6 +34,10 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
 - **`mock.rs`** — demo catalog (exact `getKioskProductInfosForClient` shape); requests
   complete after 4 s.
 - **`icons.rs`** — `kiosk_get_icons`, file lookup (see Kiosk API notes).
+- **`catalog.rs`** — `kiosk_get_catalog`: optional admin-deployed `catalog.json`
+  (`%ProgramData%\opsi-kiosk`, then next to the exe) with publisher/category/featured per
+  productId — the kiosk API has none of these. Missing file = empty; malformed = error.
+  Demo mode falls back to `mock::demo_catalog()`.
 - **`config.rs`** — `%ProgramData%\opsi-kiosk` (`data_dir()`), `get_branding` (reads
   `HKLM\SOFTWARE\opsi-kiosk\Branding`, written by the opsi package from product properties — HKLM so standard users can't plant fake support links: company name +
   support phone/email/url), `open_support_contact(channel)` — the frontend only names the
@@ -59,24 +63,31 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
   offline and announces new assignments/updates.
 - **`lib/format.ts`** — German date/uptime/password-expiry formatting (pure, tested).
 - **`App.svelte`** — Company-Portal layout, no router: `view` state
-  (`home | apps | downloads | devices | help | settings`) + `selectedId` for the detail page. NavPane
-  with the search box in its header (typing jumps to the Apps results).
-- **`lib/views/`** — `HomeView` (company name, updates, available/installed previews),
-  `AppsView` ("Anzeigen" ComboBox filter, tiles/list toggle persisted in localStorage
-  `apps-layout`), `DownloadsView` (pending + updates), `DeviceView` ("Geräte": computer
+  (`home | apps | categories | downloads | devices | help | settings`) + `selectedId` for the
+  detail page, plus a `history` stack for the title bar's back button. Accent-colored `TitleBar`
+  on top (search box there — typing jumps to the Apps results), compact NavPane icon rail below:
+  it keeps its 52px in the layout and the hamburger opens the full pane as a light-dismiss
+  overlay (content never reflows); the selection pill glides for short moves and
+  shrinks/grows for long ones. "App-Kategorien" only appears when the catalog defines categories.
+- **`lib/views/`** — `HomeView` (app cards, notifications, "Ihre Geräte" card, "Ausgewählte
+  Apps" banner from catalog `featured`), `AppsView` ("Anzeigen"/"Kategorie"/"Sortieren nach"
+  ComboBoxes, tiles/list toggle persisted in localStorage `apps-layout`), `CategoriesView`,
+  `DownloadsView` (queue / updates / installed tables with "…" menu), `DeviceView` ("Geräte": computer
   details, maintenance, `SupportTools`), `HelpView` (IT contact from branding, account info),
   `SettingsView` (sync, autostart, connection, version). The device/account inventory is
   loaded once via `lib/system/systemInfo.svelte.ts`. Visual language follows Company Portal:
   sentence-case 20px section headings, no monospace in product UI, left-aligned pages.
 - **`lib/components/`** — `CatalogGate` (loading / browser preview / "Keine Verbindung" with
-  retry / demo banner around catalog views), `ProductCollection` (tiles or list),
-  `ProductTile`, `ProductRow`, `ProductStatus` (one status line for all three), `AppIcon`,
-  `ProductDetail` + `ProductActions`.
+  retry / demo banner around catalog views), `ProductCollection` (cards or table),
+  `ProductTile` (CP app card), `ProductTable` (CP table: Name/Version/Herausgeber/Status +
+  actions snippet), `ProductStatus` (one status line for both), `AppIcon`, `ProductDetail` +
+  `ProductActions`, `TitleBar`.
 - **Actions execute immediately** (no "Vormerken"): `runAction` = setAction +
   processActionRequests([id]). `sync()` = refresh + processActionRequests(null) (ALL pending,
   e.g. set server-side via AD-group automation) + gpupdate. Completion toasts name the
   products (never a generic "alle Aktionen").
-- **Grid sort**: products with available updates first, rest alphabetical (de locale).
+- **Sort**: home sections put products with available updates first, rest alphabetical (de
+  locale); the Apps page uses the "Sortieren nach" picker (`kiosk.sort`, name/publisher).
 - **Tray/autostart/single-instance** — the app lives in the tray: `CloseRequested` only
   hides; quitting only via tray "Beenden". Single-instance plugin registered FIRST.
   Autostart (HKCU Run, `--minimized`) is enabled once on first run
@@ -102,6 +113,8 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
 3. Tokens, not raw colors. Surface ladder (`bg-surface-1..4`, `border-hairline`).
 4. ListCard for row lists, `gap-0 py-0` baked in. EmptyState for loading/empty.
 5. Every Rust command gets a typed bridge.ts wrapper.
+6. Icons only from `$lib/ui/icons` (Microsoft Fluent UI System Icons via unplugin-icons);
+   use the variant of the rendered size (16px in controls, 20px in the nav rail).
 
 ## Kiosk API notes
 

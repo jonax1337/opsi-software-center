@@ -6,3 +6,4 @@ src-tauri/target/
 deploy/opsi/CLIENT_DATA/files/
 deploy/opsi/CLIENT_DATA/icons/
 dist-opsi/
+.playwright-mcp/

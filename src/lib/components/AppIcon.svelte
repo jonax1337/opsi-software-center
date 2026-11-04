@@ -1,13 +1,14 @@
 <script lang="ts">
-  import { Package } from "@lucide/svelte";
+  import { Box } from "$lib/ui/icons";
   import { kiosk } from "$lib/kiosk/store.svelte";
   import { cn } from "$lib/utils";
 
-  type Size = "sm" | "md" | "lg";
+  type Size = "xs" | "sm" | "md" | "lg";
   type Props = { productId: string; size?: Size };
   let { productId, size = "md" }: Props = $props();
 
   const SIZES: Record<Size, { box: string; fallback: string }> = {
+    xs: { box: "size-6 rounded-sm", fallback: "size-3.5" },
     sm: { box: "size-10 rounded-md", fallback: "size-5" },
     md: { box: "size-16 rounded-lg", fallback: "size-8" },
     lg: { box: "size-24 rounded-xl", fallback: "size-10" },
@@ -27,6 +28,6 @@
       SIZES[size].box,
     )}
   >
-    <Package class={cn("text-muted-foreground", SIZES[size].fallback)} />
+    <Box class={cn("text-muted-foreground", SIZES[size].fallback)} />
   </div>
 {/if}

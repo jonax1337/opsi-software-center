@@ -33,6 +33,14 @@ function applyAccent(accent: AccentColor, resolved: "light" | "dark") {
   // Text/icon color on top of the accent fill: white unless the accent is light
   // (e.g. yellow/lime), then near-black for legibility.
   root.setProperty("--primary-foreground", luminance(pick) > 0.5 ? "#1a1a1a" : "#ffffff");
+
+  // Title bar: a dark accent shade in both themes, like Company Portal's
+  // brand-colored header — the light dark-mode fill would wash out white text.
+  const bar = resolved === "dark" ? (accent.dark2 ?? accent.dark1) : (accent.dark1 ?? accent.base);
+  if (bar) {
+    root.setProperty("--titlebar", bar);
+    root.setProperty("--titlebar-foreground", luminance(bar) > 0.5 ? "#1a1a1a" : "#ffffff");
+  }
 }
 
 /** Follows the OS for light/dark and overrides the accent with the user's
@@ -47,6 +55,8 @@ class ThemeStore {
   }
 
   constructor() {
+    // No Mica outside the desktop app — app.css paints a fallback backdrop.
+    if (!isTauri()) document.documentElement.toggleAttribute("data-browser-preview", true);
     apply(this.resolved);
     void this.#loadAccent();
     media?.addEventListener("change", (e) => {

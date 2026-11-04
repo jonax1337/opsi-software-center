@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { Loader2, Power, RefreshCw } from "@lucide/svelte";
+  import { ArrowSync, Power, Spinner } from "$lib/ui/icons";
   import { getVersion } from "@tauri-apps/api/app";
   import { Button, Card, CardContent, DataField, PageHeader, SectionHeading, toast } from "$lib/ui";
   import { isTauri } from "$lib/kiosk/bridge";
-  import { kiosk } from "$lib/kiosk/store.svelte";
+  import { CONNECTION_LABEL, kiosk, type Connection } from "$lib/kiosk/store.svelte";
   import { autostartEnabled, setAutostart } from "$lib/system/desktop";
   import { formatTime } from "$lib/format";
 
@@ -39,12 +39,12 @@
   }
 
   const busy = $derived(kiosk.syncing || kiosk.processing);
-  const connection = $derived.by(() => {
-    if (!isTauri()) return { dot: "bg-muted-foreground", label: "Browser-Vorschau" };
-    if (kiosk.status?.mock) return { dot: "bg-amber-500", label: "Demo-Modus" };
-    if (kiosk.status?.connected) return { dot: "bg-success", label: "Verbunden" };
-    return { dot: "bg-destructive", label: "Nicht verbunden" };
-  });
+  const CONNECTION_DOT: Record<Connection, string> = {
+    preview: "bg-muted-foreground",
+    demo: "bg-amber-500",
+    connected: "bg-success",
+    offline: "bg-destructive",
+  };
 </script>
 
 <PageHeader title="Einstellungen">Synchronisierung und Verhalten des Software Centers.</PageHeader>
@@ -65,7 +65,7 @@
         </p>
       </div>
       <Button disabled={busy || kiosk.loading || !isTauri()} onclick={() => kiosk.sync()}>
-        <RefreshCw class={busy ? "size-4 animate-spin" : "size-4"} />
+        <ArrowSync class={busy ? "size-4 animate-spin" : "size-4"} />
         {kiosk.processing ? "Wird ausgeführt…" : kiosk.syncing ? "Synchronisiere…" : "Synchronisieren"}
       </Button>
     </div>
@@ -88,7 +88,7 @@
         disabled={!isTauri() || autostartBusy}
         onclick={toggleAutostart}
       >
-        {#if autostartBusy}<Loader2 class="size-4 animate-spin" />{:else}<Power class="size-4" />{/if}
+        {#if autostartBusy}<Spinner class="size-4 animate-spin" />{:else}<Power class="size-4" />{/if}
         {autostart ? "Aktiviert" : "Deaktiviert"}
       </Button>
     </div>
@@ -99,24 +99,24 @@
 <Card class="card-inset">
   <CardContent>
     <div class="mb-5 flex items-center gap-2 text-sm">
-      <span class="size-2 rounded-full {connection.dot}"></span>
-      <span class="font-medium">{connection.label}</span>
+      <span class="size-2 rounded-full {CONNECTION_DOT[kiosk.connection]}"></span>
+      <span class="font-medium">{CONNECTION_LABEL[kiosk.connection]}</span>
     </div>
     <div class="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
       {#if kiosk.status?.clientId}
-        <DataField label="opsi-Client-ID" value={kiosk.status.clientId} mono />
+        <DataField label="opsi-Client-ID" value={kiosk.status.clientId} />
       {/if}
       {#if kiosk.status?.depotId}
-        <DataField label="Depot" value={kiosk.status.depotId} mono />
+        <DataField label="Depot" value={kiosk.status.depotId} />
       {/if}
       {#if kiosk.status?.connected && kiosk.status.version}
-        <DataField label="opsi-Client-Agent" value={kiosk.status.version} mono />
+        <DataField label="opsi-Client-Agent" value={kiosk.status.version} />
       {/if}
       {#if kiosk.connected}
         <DataField label="Apps insgesamt" value={kiosk.products.length} />
       {/if}
       {#if appVersion}
-        <DataField label="Software Center" value={`v${appVersion}`} mono />
+        <DataField label="Software Center" value={`v${appVersion}`} />
       {/if}
     </div>
   </CardContent>

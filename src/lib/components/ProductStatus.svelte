@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { ArrowUpCircle, CircleCheck, Clock, Loader2 } from "@lucide/svelte";
+  import { ArrowCircleUp, CheckmarkCircle, Clock, Spinner } from "$lib/ui/icons";
   import { kiosk } from "$lib/kiosk/store.svelte";
   import { productState } from "$lib/kiosk/product";
   import type { KioskProduct } from "$lib/kiosk/types";
@@ -17,16 +17,16 @@
 {#if state !== "available"}
   <span class="inline-flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
     {#if state === "running"}
-      <Loader2 class="size-3.5 shrink-0 animate-spin text-primary" />
+      <Spinner class="size-3.5 shrink-0 animate-spin text-primary" />
       <span class="truncate">{runningLabel}</span>
     {:else if state === "pending"}
       <Clock class="size-3.5 shrink-0" />
       <span class="truncate">Ausstehend</span>
     {:else if state === "update"}
-      <ArrowUpCircle class="size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+      <ArrowCircleUp class="size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
       <span class="truncate">Update verfügbar</span>
     {:else}
-      <CircleCheck class="size-3.5 shrink-0 text-success" />
+      <CheckmarkCircle class="size-3.5 shrink-0 text-success" />
       <span class="truncate">Installiert</span>
     {/if}
   </span>

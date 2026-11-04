@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { describePasswordExpiry, formatDateTime, formatUptime, presentOrUndefined } from "./format";
+import {
+  describePasswordExpiry,
+  formatDateTime,
+  formatUptime,
+  initials,
+  presentOrUndefined,
+} from "./format";
 
 const now = new Date("2026-01-10T12:00:00Z");
 const hoursAgo = (h: number) => new Date(now.getTime() - h * 3_600_000).toISOString();
@@ -69,5 +75,23 @@ describe("describePasswordExpiry", () => {
 
   it("is ok from 15 days on", () => {
     expect(describePasswordExpiry(daysFromNow(15), now)?.tone).toBe("ok");
+  });
+});
+
+describe("initials", () => {
+  it("uses the first and last word of the display name", () => {
+    expect(initials("Erika Anna Mustermann", "emuster")).toBe("EM");
+  });
+
+  it("uses one letter for a single-word name", () => {
+    expect(initials("erika", "emuster")).toBe("E");
+  });
+
+  it("falls back to the account name", () => {
+    expect(initials("  ", "emuster")).toBe("E");
+  });
+
+  it("is empty when nothing is known", () => {
+    expect(initials("", "")).toBe("");
   });
 });

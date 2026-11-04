@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Component, Snippet } from "svelte";
-  import { AlertTriangle, Info } from "@lucide/svelte";
+  import { Info, Warning } from "$lib/ui/icons";
   import { cn } from "$lib/utils";
 
   type Props = {
@@ -54,7 +54,7 @@
     }[tone],
   );
   const DefaultIcon = $derived(
-    icon ?? (tone === "warning" || tone === "error" ? AlertTriangle : Info),
+    icon ?? (tone === "warning" || tone === "error" ? Warning : Info),
   );
   const iconSize = $derived(size === "lg" ? "size-5" : "size-4");
   const gap = $derived(size === "sm" || size === "xs" ? "gap-2" : "gap-3");

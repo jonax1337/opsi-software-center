@@ -3,6 +3,7 @@ import {
   devicePendingReboot,
   getBranding,
   isTauri,
+  kioskGetCatalog,
   kioskGetIcons,
   kioskGetProducts,
   kioskProcessActions,
@@ -17,10 +18,13 @@ import {
   isInstalled,
   isPending,
   joinNames,
+  matchesCategory,
   selectProducts,
+  sortProducts,
   type Filter,
+  type Sort,
 } from "./product";
-import type { ActionRequest, KioskProduct, KioskStatus } from "./types";
+import type { ActionRequest, Catalog, KioskProduct, KioskStatus } from "./types";
 import { toast } from "$lib/ui/toast.svelte";
 import {
   ensureAutostartDefault,
@@ -29,7 +33,16 @@ import {
   onTrayCheckUpdates,
 } from "$lib/system/desktop";
 
-export type { Filter };
+export type { Filter, Sort };
+
+/** Where the catalog comes from — shown in Settings and on the home device card. */
+export type Connection = "preview" | "demo" | "connected" | "offline";
+export const CONNECTION_LABEL: Record<Connection, string> = {
+  preview: "Browser-Vorschau",
+  demo: "Demo-Modus",
+  connected: "Mit opsi verbunden",
+  offline: "Nicht verbunden",
+};
 
 const POLL_INTERVAL_MS = 5000;
 const POLL_TIMEOUT_MS = 30 * 60 * 1000;
@@ -49,6 +62,11 @@ class KioskStore {
   processing = $state(false);
   search = $state("");
   filter = $state<Filter>("all");
+  /** Apps page category ("" = all) and sort order */
+  category = $state("");
+  sort = $state<Sort>("name-asc");
+  /** optional publisher/category metadata (catalog.json) */
+  catalog = $state<Catalog>({});
   /** productId → data-URL for locally deployed icon files */
   icons = $state<Record<string, string>>({});
   syncing = $state(false);
@@ -60,15 +78,30 @@ class KioskStore {
   private notifiedPending = new Set<string>();
   /** updatable productIds already surfaced as a native notification this session */
   private notifiedUpdates = new Set<string>();
+  /** a malformed catalog.json is reported once, not on every poll */
+  private catalogErrorShown = false;
 
   /** Live opsiclientd or the demo catalog — i.e. there is something to show. */
   connected = $derived(!!this.status && (this.status.connected || this.status.mock));
+  connection = $derived.by((): Connection => {
+    if (!isTauri()) return "preview";
+    if (this.status?.mock) return "demo";
+    return this.status?.connected ? "connected" : "offline";
+  });
   pending = $derived(this.products.filter(isPending));
   installed = $derived(this.products.filter(isInstalled));
   updatable = $derived(this.products.filter(hasUpdate));
   /** Updates not already queued — what "Downloads und Updates" still offers. */
   updatesToOffer = $derived(this.updatable.filter((p) => !isPending(p)));
-  filtered = $derived(selectProducts(this.products, this.filter, this.search));
+  filtered = $derived(
+    sortProducts(
+      selectProducts(this.products, this.filter, this.search, this.catalog).filter((p) =>
+        matchesCategory(p, this.category, this.catalog),
+      ),
+      this.sort,
+      this.catalog,
+    ),
+  );
 
   async init() {
     if (!isTauri()) {
@@ -226,7 +259,19 @@ class KioskStore {
     } catch {
       // icons are optional — tiles fall back to a generic package symbol
     }
+    await this.loadCatalog();
     void this.refreshRebootPending();
+  }
+
+  /** The catalog is optional, but a broken file is the admin's typo — say so once. */
+  private async loadCatalog() {
+    try {
+      this.catalog = await kioskGetCatalog();
+    } catch (err) {
+      if (this.catalogErrorShown) return;
+      this.catalogErrorShown = true;
+      toast.warning("App-Katalog konnte nicht gelesen werden", String(err));
+    }
   }
 
   /** Set the action request and execute it right away. */

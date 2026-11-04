@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Component, Snippet } from "svelte";
-  import { Loader2 } from "@lucide/svelte";
+  import { Spinner } from "$lib/ui/icons";
   import Card from "./Card.svelte";
   import CardContent from "./CardContent.svelte";
   import { cn } from "$lib/utils";
@@ -37,7 +37,7 @@
     <div class="flex items-baseline gap-2 mt-2">
       <span class="text-3xl font-semibold tabular-nums">
         {#if loading}
-          <Loader2 class="size-6 animate-spin text-muted-foreground" />
+          <Spinner class="size-6 animate-spin text-muted-foreground" />
         {:else}
           {value}
         {/if}

@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Component } from "svelte";
-  import { FileText, Globe, Loader2, RotateCw } from "@lucide/svelte";
+  import { ArrowClockwise, DocumentText, Globe, Spinner } from "$lib/ui/icons";
   import { Button, toast } from "$lib/ui";
   import { deviceFlushDns, deviceGpresultReport, deviceGpupdate, isTauri } from "$lib/kiosk/bridge";
 
@@ -8,9 +8,9 @@
   type Tool = { id: string; label: string; icon: Component; run: () => Promise<void> };
 
   const TOOLS: Tool[] = [
-    { id: "gpupdate", label: "Richtlinien aktualisieren", icon: RotateCw, run: refreshPolicies },
+    { id: "gpupdate", label: "Richtlinien aktualisieren", icon: ArrowClockwise, run: refreshPolicies },
     { id: "dns", label: "DNS-Cache leeren", icon: Globe, run: flushDns },
-    { id: "gpresult", label: "Richtlinienbericht", icon: FileText, run: openPolicyReport },
+    { id: "gpresult", label: "Richtlinienbericht", icon: DocumentText, run: openPolicyReport },
   ];
 
   let running = $state<string | null>(null);
@@ -58,7 +58,7 @@
       onclick={() => runTool(tool)}
     >
       {#if running === tool.id}
-        <Loader2 class="size-4 animate-spin" />
+        <Spinner class="size-4 animate-spin" />
       {:else}
         <tool.icon class="size-4" />
       {/if}

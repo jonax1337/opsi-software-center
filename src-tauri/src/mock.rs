@@ -73,6 +73,40 @@ const DEMO_ICONS: [(&str, &str, &str); 15] = [
     ("adobe-reader", "Ar", "#B30B00"),
 ];
 
+/// (productId, publisher, category, featured) — demo stand-in for the
+/// optional `catalog.json` an admin deploys.
+const DEMO_CATALOG: [(&str, &str, &str, bool); 15] = [
+    ("7zip", "Igor Pavlov", "Werkzeuge", true),
+    ("firefox-esr", "Mozilla", "Internet", true),
+    ("vlc", "VideoLAN", "Multimedia", false),
+    ("keepassxc", "KeePassXC Team", "Sicherheit", true),
+    ("greenshot", "Greenshot", "Werkzeuge", false),
+    ("notepadplusplus", "Don Ho", "Entwicklung", false),
+    ("pdf24", "geek software GmbH", "Büro", true),
+    ("gimp", "The GIMP Team", "Grafik", false),
+    ("libreoffice", "The Document Foundation", "Büro", false),
+    ("inkscape", "Inkscape Project", "Grafik", false),
+    ("putty", "Simon Tatham", "Entwicklung", false),
+    ("winscp", "Martin Přikryl", "Entwicklung", false),
+    ("vscode", "Microsoft Corporation", "Entwicklung", false),
+    ("teamviewer-qs", "TeamViewer Germany GmbH", "Support", false),
+    ("adobe-reader", "Adobe Inc.", "Büro", false),
+];
+
+pub fn demo_catalog() -> crate::catalog::Catalog {
+    DEMO_CATALOG
+        .iter()
+        .map(|(id, publisher, category, featured)| {
+            let entry = crate::catalog::CatalogEntry {
+                publisher: publisher.to_string(),
+                category: category.to_string(),
+                featured: *featured,
+            };
+            (id.to_string(), entry)
+        })
+        .collect()
+}
+
 /// Data-URL of the demo icon for `product_id`, if it is a demo product.
 pub fn demo_icon(product_id: &str) -> Option<String> {
     use base64::Engine;
@@ -217,6 +251,14 @@ mod tests {
         let before = p.clone();
         complete_request(&mut p);
         assert_eq!(p, before);
+    }
+
+    #[test]
+    fn every_demo_product_has_a_catalog_entry() {
+        let catalog = demo_catalog();
+        for p in demo_products() {
+            assert!(catalog.contains_key(product_id_of(&p)), "{p}");
+        }
     }
 
     #[test]

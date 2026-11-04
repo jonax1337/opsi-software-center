@@ -1,6 +1,6 @@
 /**
- * Desktop-integration helpers: autostart, native notifications and the tray
- * "check for updates" event. All no-ops in the browser preview (isTauri false),
+ * Desktop-integration helpers: autostart, native notifications, the tray
+ * "check for updates" event and the custom title bar's window controls. All no-ops in the browser preview (isTauri false),
  * so callers don't need to guard every call.
  */
 import { disable, enable, isEnabled } from "@tauri-apps/plugin-autostart";
@@ -10,6 +10,7 @@ import {
   sendNotification,
 } from "@tauri-apps/plugin-notification";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { isTauri } from "$lib/kiosk/bridge";
 
 /** Mirrors `tray::CHECK_UPDATES_EVENT` in the Rust backend. */
@@ -77,3 +78,15 @@ export async function onTrayCheckUpdates(cb: () => void): Promise<UnlistenFn> {
   if (!isTauri()) return () => {};
   return listen(CHECK_UPDATES_EVENT, () => cb());
 }
+
+/** Caption-button actions for the custom title bar (the window is undecorated).
+ *  `close` only hides — the backend's CloseRequested handler keeps the app in the tray. */
+export const windowControls = {
+  minimize: () => (isTauri() ? getCurrentWindow().minimize() : Promise.resolve()),
+  toggleMaximize: () => (isTauri() ? getCurrentWindow().toggleMaximize() : Promise.resolve()),
+  close: () => (isTauri() ? getCurrentWindow().close() : Promise.resolve()),
+  isMaximized: () => (isTauri() ? getCurrentWindow().isMaximized() : Promise.resolve(false)),
+  /** Fires on every resize, incl. maximize/restore. */
+  onResized: async (cb: () => void): Promise<UnlistenFn> =>
+    isTauri() ? getCurrentWindow().onResized(() => cb()) : () => {},
+};

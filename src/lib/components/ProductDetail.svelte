@@ -1,36 +1,29 @@
 <script lang="ts">
-  import { ArrowLeft } from "@lucide/svelte";
   import { DataField, InfoBanner, SectionHeading } from "$lib/ui";
   import AppIcon from "./AppIcon.svelte";
   import ProductActions from "./ProductActions.svelte";
   import ProductStatus from "./ProductStatus.svelte";
-  import { displayName, displayVersion } from "$lib/kiosk/product";
+  import { kiosk } from "$lib/kiosk/store.svelte";
+  import { categoryOf, displayName, displayVersion, publisherOf } from "$lib/kiosk/product";
   import type { KioskProduct } from "$lib/kiosk/types";
 
-  type Props = { product: KioskProduct; backLabel: string; onback: () => void };
-  let { product, backLabel, onback }: Props = $props();
+  /** Back navigation lives in the title bar, as in Company Portal. */
+  let { product }: { product: KioskProduct } = $props();
 
+  const publisher = $derived(publisherOf(product, kiosk.catalog));
+  const category = $derived(categoryOf(product, kiosk.catalog));
   const requirements = $derived(
     (product.requirements ?? []).map((r) => r.requiredProductId).filter(Boolean),
   );
 </script>
 
-<button
-  type="button"
-  onclick={onback}
-  class="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground cursor-pointer"
->
-  <ArrowLeft class="size-4" />
-  {backLabel}
-</button>
-
-<!-- Company Portal detail: big icon, then name, grey secondary line, status
-     and the primary action directly below the name. -->
+<!-- Company Portal detail: big icon, then name, publisher (or version),
+     status and the primary action directly below the name. -->
 <div class="mb-8 flex items-start gap-6">
   <AppIcon productId={product.productId} size="lg" />
   <div class="min-w-0 flex-1">
     <h1 class="text-[28px] font-semibold leading-9">{displayName(product)}</h1>
-    <div class="text-sm text-muted-foreground">{displayVersion(product)}</div>
+    <div class="text-sm text-muted-foreground">{publisher || displayVersion(product)}</div>
     <div class="mt-1 empty:hidden"><ProductStatus {product} /></div>
     <div class="mt-4"><ProductActions {product} /></div>
   </div>
@@ -57,6 +50,12 @@
   <div class="grid max-w-3xl grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-3">
     <DataField label="Verfügbare Version" value={product.versionStr} />
     <DataField label="Installierte Version" value={product.installedVerStr || "—"} />
+    {#if publisher}
+      <DataField label="Herausgeber" value={publisher} />
+    {/if}
+    {#if category}
+      <DataField label="Kategorie" value={category} />
+    {/if}
     <DataField label="Produkt-ID" value={product.productId} />
     {#if requirements.length}
       <DataField label="Abhängigkeiten" value={requirements.join(", ")} />

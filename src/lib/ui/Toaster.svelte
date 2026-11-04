@@ -1,15 +1,21 @@
 <script lang="ts">
   import { toasts, dismiss } from "./toast.svelte";
-  import { CheckCircle2, XCircle, AlertCircle, Info, X } from "@lucide/svelte";
+  import {
+    CheckmarkCircle,
+    Dismiss,
+    DismissCircle,
+    ErrorCircle,
+    Info,
+  } from "$lib/ui/icons";
   import { fly } from "svelte/transition";
   import { flip } from "svelte/animate";
   import { cubicOut, cubicIn } from "svelte/easing";
 
   const icons = {
     default: Info,
-    success: CheckCircle2,
-    error: XCircle,
-    warning: AlertCircle,
+    success: CheckmarkCircle,
+    error: DismissCircle,
+    warning: ErrorCircle,
   };
 
   const accents = {
@@ -63,7 +69,7 @@
         class="text-muted-foreground hover:text-foreground transition-colors"
         aria-label="Close"
       >
-        <X class="size-4" />
+        <Dismiss class="size-4" />
       </button>
     </div>
   {/each}
