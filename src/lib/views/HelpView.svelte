@@ -70,7 +70,7 @@
     {:else}
       <p class="text-sm text-muted-foreground">
         Wenden Sie sich bei Fragen an Ihre IT-Abteilung. Kontaktdaten kann die IT im opsi-Paket
-        des Software Centers hinterlegen.
+        des Software Portals hinterlegen.
       </p>
     {/if}
   </CardContent>

@@ -1,6 +1,6 @@
-﻿# Beispielaktion fuer das Software Center: Cache des neuen Microsoft Teams leeren.
+﻿# Beispielaktion fuer das Software Portal: Cache des neuen Microsoft Teams leeren.
 # Laeuft als angemeldeter Benutzer. Exit-Code 0 = Erfolg; die letzte Ausgabezeile
-# erscheint im Software Center als Meldung, bei Fehlern die erste Fehlerzeile.
+# erscheint im Software Portal als Meldung, bei Fehlern die erste Fehlerzeile.
 $ErrorActionPreference = "Stop"
 
 $cache = Join-Path $env:LOCALAPPDATA "Packages\MSTeams_8wekyb3d8bbwe\LocalCache\Microsoft\MSTeams"

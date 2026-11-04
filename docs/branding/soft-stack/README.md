@@ -1,10 +1,10 @@
-# Software Center · Soft Stack
+# Software Portal · Soft Stack
 
-Das fertige Branding basiert auf der ausgewählten [Konzepttafel **02 Soft Stack**](reference.png): drei gestaffelte blaue App-Karten, weiche Rundungen und ein quadratischer Ausschnitt in der vorderen Karte. Der Produktname bleibt **Software Center**, der Claim **„Alles bereit für deine Arbeit.“**
+Das fertige Branding basiert auf der ausgewählten [Konzepttafel **02 Soft Stack**](reference.png): drei gestaffelte blaue App-Karten, weiche Rundungen und ein quadratischer Ausschnitt in der vorderen Karte. Der Produktname ist **Software Portal**, der Claim **„Alles bereit für deine Arbeit.“**
 
 [Branding ansehen](index.html) · [Komplettes Paket herunterladen](../soft-stack-branding.zip)
 
-![Software Center](banners/readme-banner.png)
+![Software Portal](banners/readme-banner.png)
 
 ## Die wichtigsten Dateien
 
@@ -58,7 +58,7 @@ UI-Schrift: **Segoe UI Variable**, danach Segoe UI, system-ui, sans-serif. Über
 
 - Der Projekt-README verwendet das passende helle bzw. dunkle PNG-Banner.
 - `app-icon.png`, `src/assets/icon.png` und `src/assets/icon.svg` sind aktualisiert.
-- `src-tauri/icons/` enthält die neu exportierten nativen Icons; Fenster, Taskleiste und Installer verwenden sie über die Tauri-Icon-Anbindung.
+- `src-tauri/icons/` enthält die nativen Icons für Fenster, Taskleiste und Installer. Sie zeigen das freistehende Zeichen ohne Trägerfläche, randfüllend: Quelle ist [native-icon.svg](svg/native-icon.svg), deren viewBox eng um die Kontur des Zeichens liegt.
 - Der Infobereich (Tray) zeigt gemäß der 16-px-Regel das freistehende Zeichen ohne Trägerfläche: `src-tauri/icons/tray.png` (Kopie von `png/mark/32.png`, scharf bis 200 % Skalierung).
 - In der App steht das Zeichen (`src/assets/mark.svg`) mit dem Produktnamen oben im Navigationsbereich.
 - Die Fallback-Akzentfarbe (wenn die Windows-Akzentfarbe nicht lesbar ist) ist das Primärblau `#185ABD`.
@@ -78,6 +78,9 @@ Der PNG-Export benötigt Node.js und `sharp`. Falls das Paket an anderer Stelle 
 Die nativen Icon-Sets werden im Repository mit dem vorhandenen Tauri-Werkzeug erzeugt:
 
 ```powershell
+# App (Fenster, Taskleiste, Installer): randloses Zeichen
+pnpm exec tauri icon docs/branding/soft-stack/svg/native-icon.svg --output src-tauri/icons
+# Icon-Set mit Trägerfläche (Store-/Kachel-Einsatz)
 pnpm exec tauri icon docs/branding/soft-stack/png/app-icon/1024.png --output docs/branding/soft-stack/icons
 ```
 

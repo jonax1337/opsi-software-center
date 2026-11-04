@@ -91,23 +91,23 @@ def build_marks():
         sizes = [16, 24, 32, 48, 64, 128, 256, 512, 1024, 2048] if name == "mark" else [512, 1024]
         exports = [(f"png/{name}/{size}.png", size) for size in sizes]
         save_svg(f"svg/{name}.svg", document(512, 512, placed_symbol(47, 68, 418, style),
-                 "Software Center · Soft Stack"), exports)
+                 "Software Portal · Soft Stack"), exports)
 
 
 def build_lockups():
     for suffix, fill in [("", COLORS["ink"]), ("-inverse", COLORS["white"])]:
         name = "logo-horizontal" + suffix
         body = placed_symbol(20, 21, 190) + lettering("name", 252, 150, 103, fill)
-        save_svg(f"svg/{name}.svg", document(1100, 224, body, "Software Center"),
+        save_svg(f"svg/{name}.svg", document(1100, 224, body, "Software Portal"),
                  [(f"png/{name}.png", 1100), (f"png/{name}@2x.png", 2200)])
         name = "logo-stacked" + suffix
         word_width = type_width("name", 94)
         body = placed_symbol(271, 56, 418) + lettering("name", (960-word_width)/2, 521, 94, fill)
-        save_svg(f"svg/{name}.svg", document(960, 580, body, "Software Center"),
+        save_svg(f"svg/{name}.svg", document(960, 580, body, "Software Portal"),
                  [(f"png/{name}.png", 960), (f"png/{name}@2x.png", 1920)])
         name = "wordmark" + suffix
         body = lettering("name", 16, 98, 112, fill)
-        save_svg(f"svg/{name}.svg", document(910, 132, body, "Software Center"),
+        save_svg(f"svg/{name}.svg", document(910, 132, body, "Software Portal"),
                  [(f"png/{name}.png", 1820)])
 
 
@@ -120,8 +120,18 @@ def build_app_icons():
                 'stroke="white" stroke-opacity=".64"/>' + placed_symbol(82, 88, 348, dimensional=True))
         sizes = [16, 24, 32, 48, 64, 128, 256, 512, 1024, 2048]
         name = "app-icon" + suffix
-        save_svg(f"svg/{name}.svg", document(512, 512, body, "Software Center App-Icon"),
+        save_svg(f"svg/{name}.svg", document(512, 512, body, "Software Portal App-Icon"),
                  [(f"png/{name}/{size}.png", size) for size in sizes])
+
+
+# Square box around the mark's outline (x 156–406, y 73.4–298.1) with 2 units of
+# anti-aliasing room, so taskbar/window icons use the full tile without a carrier plate.
+NATIVE_ICON_BOX = "154 58.7 254 254"
+
+
+def build_native_icon():
+    save_svg("svg/native-icon.svg", document(1024, 1024, symbol(), "Software Portal",
+             view_box=NATIVE_ICON_BOX))
 
 
 def waves(dark=False):
@@ -142,20 +152,20 @@ def build_banners():
                 + lettering("tagline", 91, 319, 38, secondary)
                 + placed_symbol(1072, 93, 346, dimensional=True))
         name = "readme-banner" + suffix
-        save_svg(f"banners/{name}.svg", document(1600, 520, body, "Software Center · Alles bereit für deine Arbeit."),
+        save_svg(f"banners/{name}.svg", document(1600, 520, body, "Software Portal · Alles bereit für deine Arbeit."),
                  [(f"banners/{name}.png", 1600), (f"banners/{name}@2x.png", 3200)])
     body = ('<rect width="1200" height="630" fill="url(#banner)"/>'
             '<g transform="translate(-400 90)">' + waves() + '</g>'
             + placed_symbol(475, 61, 250, dimensional=True)
             + lettering("name", (1200-type_width("name", 78))/2, 425, 78, COLORS["ink"])
             + lettering("tagline", (1200-type_width("tagline", 30))/2, 493, 30, "#52657D"))
-    save_svg("social/social-preview.svg", document(1200, 630, body, "Software Center für opsi"),
+    save_svg("social/social-preview.svg", document(1200, 630, body, "Software Portal für opsi"),
              [("social/social-preview.png", 1200)])
 
 
 def build_manifest():
     (ROOT / "source/exports.json").write_text(json.dumps(EXPORTS, indent=2) + "\n", encoding="utf-8")
-    tokens = {"name": "Software Center", "direction": "02 Soft Stack", "colors": COLORS,
+    tokens = {"name": "Software Portal", "direction": "02 Soft Stack", "colors": COLORS,
               "fontFamily": ["Segoe UI Variable", "Segoe UI", "system-ui", "sans-serif"],
               "fontWeights": {"body": 400, "heading": 600, "wordmark": 700},
               "tagline": TYPE["tagline"]["text"], "clearSpace": "mindestens Breite des Ausschnitts",
@@ -170,6 +180,7 @@ def main():
     build_marks()
     build_lockups()
     build_app_icons()
+    build_native_icon()
     build_banners()
     build_manifest()
     print(f"Built SVG family and {len(EXPORTS)} PNG export specifications.")

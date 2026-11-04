@@ -1,13 +1,13 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/branding/soft-stack/banners/readme-banner-dark.png" />
-  <img src="docs/branding/soft-stack/banners/readme-banner.png" alt="Software Center für opsi — Alles bereit für deine Arbeit." width="1600" />
+  <img src="docs/branding/soft-stack/banners/readme-banner.png" alt="Software Portal für opsi — Alles bereit für deine Arbeit." width="1600" />
 </picture>
 
-# Software Center für opsi
+# Software Portal für opsi
 
 Ein Self-Service-Portal im Stil des **Microsoft Intune Company Portal** für Umgebungen, die
 Software mit [opsi](https://www.opsi.org) verteilen. Anwender installieren, aktualisieren und
-entfernen freigegebene Software selbst — ohne Admin-Rechte und ohne Ticket. Das Software Center
+entfernen freigegebene Software selbst — ohne Admin-Rechte und ohne Ticket. Das Software Portal
 ersetzt die Oberfläche des `opsi-client-kiosk` und nutzt dieselbe Software-on-Demand-Mechanik.
 
 - Startseite, App-Katalog (Kacheln oder Liste), Detailseite pro App, „Downloads und Updates",
@@ -46,7 +46,7 @@ Logo, App-Icons und Banner: [Soft-Stack-Branding](docs/branding/soft-stack/READM
 | Clients | **WebView2-Runtime** — bei Windows 11 vorinstalliert; unter Windows 10 lädt der Installer sie bei Bedarf nach (Internetzugang nötig) |
 | Konfiguration | **Software on Demand** eingerichtet (siehe Schritt 3) |
 
-Das Software Center braucht **keine Zugangsdaten**: Die Kiosk-API des lokalen opsiclientd ist
+Das Software Portal braucht **keine Zugangsdaten**: Die Kiosk-API des lokalen opsiclientd ist
 von `localhost` ohne Anmeldung erreichbar und zeigt nur die per Software on Demand
 freigegebenen Produkte.
 
@@ -55,17 +55,17 @@ freigegebenen Produkte.
 ### 1. Paket herunterladen
 
 Laden Sie aus dem neuesten [Release](../../releases) die Datei
-`software-center_<version>-opsi-source.tar.gz` herunter. Sie enthält die fertige
+`software-portal_<version>-opsi-source.tar.gz` herunter. Sie enthält die fertige
 opsi-Paketquelle samt Installer. (Selbst bauen: siehe [unten](#selbst-bauen--entwickeln).)
 
 ### 2. Paket auf dem opsi-Server bauen und installieren
 
 ```bash
-mkdir -p /var/lib/opsi/workbench/software-center
-tar -xzf software-center_<version>-opsi-source.tar.gz -C /var/lib/opsi/workbench/software-center
-cd /var/lib/opsi/workbench/software-center
+mkdir -p /var/lib/opsi/workbench/software-portal
+tar -xzf software-portal_<version>-opsi-source.tar.gz -C /var/lib/opsi/workbench/software-portal
+cd /var/lib/opsi/workbench/software-portal
 opsi-makepackage
-opsi-package-manager -i software-center_<version>-1.opsi
+opsi-package-manager -i software-portal_<version>-1.opsi
 ```
 
 ### 3. Software on Demand einrichten
@@ -83,14 +83,14 @@ Details: [opsi-Handbuch, Kapitel opsi-client-kiosk / Software on Demand](https:/
 
 ### 4. Firmenname und Support-Kontakt setzen (optional, empfohlen)
 
-In opsi-configed beim Produkt `software-center` die [Produkt-Properties](#produkt-properties)
-ausfüllen — global oder pro Client-Gruppe. Ohne Angaben zeigt das Software Center neutrale Texte.
+In opsi-configed beim Produkt `software-portal` die [Produkt-Properties](#produkt-properties)
+ausfüllen — global oder pro Client-Gruppe. Ohne Angaben zeigt das Software Portal neutrale Texte.
 
 ### 5. Auf die Clients ausrollen
 
-Produkt `software-center` auf den gewünschten Clients auf **setup** stellen. Das Setup läuft
+Produkt `software-portal` auf den gewünschten Clients auf **setup** stellen. Das Setup läuft
 still im SYSTEM-Kontext, legt einen Startmenü-Eintrag an (keinen Desktop-Link), und das
-Software Center richtet beim ersten Start den Autostart bei der Anmeldung ein. Erneute Läufe
+Software Portal richtet beim ersten Start den Autostart bei der Anmeldung ein. Erneute Läufe
 sind schnell: Ist die Version schon installiert, werden nur Icons und Properties aktualisiert.
 
 ## Produkt-Properties
@@ -108,7 +108,7 @@ werden nicht angezeigt. Nach einer Änderung das Produkt erneut auf **setup** st
 
 ## Produkt-Icons
 
-Die opsi-Kiosk-API liefert keine Icons. Das Software Center sucht `<productId>.png`
+Die opsi-Kiosk-API liefert keine Icons. Das Software Portal sucht `<productId>.png`
 (auch `.ico`, `.jpg`, `.svg`, `.webp`) in dieser Reihenfolge:
 
 1. Umgebungsvariable `OPSI_KIOSK_ICON_DIR`
@@ -136,8 +136,8 @@ Zusätzlich können Sie **eigene Skripte** bereitstellen. Sie erscheinen darunte
 
 1. Legen Sie `actions.json` und die Skripte nach `CLIENT_DATA/actions/` (oder beim Selbstbauen
    `-ActionSource <ordner>`). Vorlage: [`deploy/opsi/actions-example/`](deploy/opsi/actions-example/).
-2. `opsi-makepackage`, installieren, `software-center` auf **setup** stellen. Das Setup kopiert
-   alles nach `%ProgramFiles%\Software Center\actions\` (Installationsordner — Standardbenutzer können dort nichts anlegen oder ändern).
+2. `opsi-makepackage`, installieren, `software-portal` auf **setup** stellen. Das Setup kopiert
+   alles nach `%ProgramFiles%\Software Portal\actions\` (Installationsordner — Standardbenutzer können dort nichts anlegen oder ändern).
 
 ```json
 [
@@ -173,7 +173,7 @@ Regeln für die Skripte:
 
 ## Den alten opsi-client-kiosk ablösen
 
-1. `software-center` ausrollen (siehe oben).
+1. `software-portal` ausrollen (siehe oben).
 2. `opsi-client-kiosk` auf den Clients auf **uninstall** stellen, z. B. für alle Clients, auf
    denen er installiert ist:
    ```bash
@@ -182,7 +182,7 @@ Regeln für die Skripte:
      | while read c; do opsi-admin -d method setProductActionRequest "opsi-client-kiosk" "$c" "uninstall"; done
    ```
 3. Die Software-on-Demand-Konfiguration (`software-on-demand.*`, Event `on_demand`) **nicht**
-   entfernen — das Software Center nutzt sie weiter.
+   entfernen — das Software Portal nutzt sie weiter.
 
 ## Was Anwender sehen
 
@@ -198,19 +198,19 @@ Regeln für die Skripte:
 | **Einstellungen** | Gerät synchronisieren, Autostart ein/aus, Verbindungsstatus, Version |
 
 Das Fenster schließt in den Infobereich; beendet wird über das Tray-Menü. Alle 5 Minuten
-prüft das Software Center im Hintergrund auf neue Zuweisungen und Updates und meldet sie per
+prüft das Software Portal im Hintergrund auf neue Zuweisungen und Updates und meldet sie per
 Windows-Benachrichtigung.
 
 ## Fehlerbehebung
 
 | Symptom | Ursache / Lösung |
 |---|---|
-| „Keine Verbindung zum opsi-Client-Dienst" | Läuft der Dienst `opsiclientd`? Ist `kiosk_api_active = true`? Antwortet `https://localhost:4441/kiosk`? Kurz nach der Anmeldung startet der Dienst manchmal noch — das Software Center versucht es automatisch erneut. |
+| „Keine Verbindung zum opsi-Client-Dienst" | Läuft der Dienst `opsiclientd`? Ist `kiosk_api_active = true`? Antwortet `https://localhost:4441/kiosk`? Kurz nach der Anmeldung startet der Dienst manchmal noch — das Software Portal versucht es automatisch erneut. |
 | Keine Apps sichtbar | Dem Client ist keine Software-on-Demand-Gruppe zugewiesen, oder die Gruppe ist leer (Schritt 3). |
-| Firmenname/Kontakt fehlt | Properties gesetzt? Danach `software-center` erneut auf **setup** stellen. Prüfen: Registry `HKLM\SOFTWARE\opsi-kiosk\Branding`. |
+| Firmenname/Kontakt fehlt | Properties gesetzt? Danach `software-portal` erneut auf **setup** stellen. Prüfen: Registry `HKLM\SOFTWARE\opsi-kiosk\Branding`. |
 | Icons fehlen | Dateiname muss exakt der Produkt-ID entsprechen, siehe [Produkt-Icons](#produkt-icons). |
-| „Die Aktionen Ihrer IT konnten nicht geladen werden" | `actions.json` in `%ProgramFiles%\Software Center\actions\` prüfen; die Meldung nennt Eintrag und Grund, siehe [Wartungsaktionen](#wartungsaktionen). |
-| Installation einer App schlägt fehl | Das Software Center setzt nur den Action-Request; die Installation führt opsi aus. Log auf dem Client: `C:\opsi.org\log\opsi-script.log`. |
+| „Die Aktionen Ihrer IT konnten nicht geladen werden" | `actions.json` in `%ProgramFiles%\Software Portal\actions\` prüfen; die Meldung nennt Eintrag und Grund, siehe [Wartungsaktionen](#wartungsaktionen). |
+| Installation einer App schlägt fehl | Das Software Portal setzt nur den Action-Request; die Installation führt opsi aus. Log auf dem Client: `C:\opsi.org\log\opsi-script.log`. |
 | Paket-Setup schlägt fehl | Log des Setups: `C:\opsi.org\log\opsi-script.log`; der NSIS-Installer meldet seinen ExitCode dort. |
 
 ## Wie es funktioniert & Sicherheit
@@ -232,7 +232,7 @@ Die App spricht ausschließlich die **lokale Kiosk-API des opsiclientd** an
 - Produkt-IDs werden vor jeder Pfadverwendung gegen Traversal geprüft; Support-Links öffnet die
   App nur aus der Admin-Konfiguration und nur als `mailto:`, `tel:` oder `http(s)://`.
 - Wartungsaktionen führen nur Skripte aus dem Installationsordner
-  `%ProgramFiles%\Software Center\actions\` aus. Die Oberfläche nennt nur die ID der Aktion;
+  `%ProgramFiles%\Software Portal\actions\` aus. Die Oberfläche nennt nur die ID der Aktion;
   Skriptpfad und Inhalt kommen ausschließlich aus dem Paket, Benutzereingaben erreichen kein Skript.
 - Ein Demo-Katalog erscheint nur im Entwicklungs-Build oder mit `OPSI_KIOSK_MOCK=1` — nie
   versehentlich bei Anwendern.

@@ -74,7 +74,7 @@ export async function deviceDiagnosticsBundle(): Promise<string> {
 }
 
 /** A maintenance script the admin ships via the opsi package
- *  (`%ProgramFiles%\Software Center\actions\actions.json`). */
+ *  (`%ProgramFiles%\Software Portal\actions\actions.json`). */
 export interface AdminAction {
   id: string;
   label: string;

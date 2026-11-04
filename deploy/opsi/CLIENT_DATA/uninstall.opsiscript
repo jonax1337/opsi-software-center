@@ -1,5 +1,5 @@
 ; ----------------------------------------------------------------------
-; Software Center — uninstall
+; Software Portal — uninstall
 ; ----------------------------------------------------------------------
 [Actions]
 requiredWinstVersion >= "4.12.4"
@@ -7,10 +7,10 @@ ScriptErrorMessages=off
 
 DefVar $InstallDir$
 
-Set $InstallDir$ = "%ProgramFiles64Dir%\Software Center"
+Set $InstallDir$ = "%ProgramFiles64Dir%\Software Portal"
 
 comment "--- laufende Instanzen beenden ---"
-Killtask "Software Center.exe"
+Killtask "Software Portal.exe"
 Killtask "opsi-kiosk.exe"
 
 comment "--- NSIS-Uninstaller ausfuehren ---"

@@ -30,8 +30,8 @@
       toast.success(
         autostart ? "Autostart aktiviert" : "Autostart deaktiviert",
         autostart
-          ? "Das Software Center startet künftig automatisch im Infobereich."
-          : "Das Software Center startet nicht mehr automatisch.",
+          ? "Das Software Portal startet künftig automatisch im Infobereich."
+          : "Das Software Portal startet nicht mehr automatisch.",
       );
     } finally {
       autostartBusy = false;
@@ -47,7 +47,7 @@
   };
 </script>
 
-<PageHeader title="Einstellungen">Synchronisierung und Verhalten des Software Centers.</PageHeader>
+<PageHeader title="Einstellungen">Synchronisierung und Verhalten des Software Portals.</PageHeader>
 
 <SectionHeading title="Gerät synchronisieren" />
 <Card class="card-inset mb-6">
@@ -116,7 +116,7 @@
         <DataField label="Apps insgesamt" value={kiosk.products.length} />
       {/if}
       {#if appVersion}
-        <DataField label="Software Center" value={`v${appVersion}`} />
+        <DataField label="Software Portal" value={`v${appVersion}`} />
       {/if}
     </div>
   </CardContent>

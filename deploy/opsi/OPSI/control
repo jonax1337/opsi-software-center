@@ -4,9 +4,9 @@ depends:
 
 [Product]
 type: localboot
-id: software-center
-name: Software Center
-description: Self-Service Software Center — moderner Ersatz für den opsi-client-kiosk (Software on Demand)
+id: software-portal
+name: Software Portal
+description: Self-Service Software Portal — moderner Ersatz für den opsi-client-kiosk (Software on Demand)
 advice: Benötigt opsi-client-agent 4.3 mit aktiver Kiosk-API und konfiguriertem Software-on-Demand. Firmenname und Support-Kontakt über die Produkt-Properties setzen.
 version: 0.3.0
 priority: 0
@@ -25,7 +25,7 @@ type: unicode
 name: company_name
 multivalue: False
 editable: True
-description: Firmenname, der im Software Center angezeigt wird (Startseite, Hilfe & Support). Leer = "Software Center".
+description: Firmenname, der im Software Portal angezeigt wird (Startseite, Hilfe & Support). Leer = "Software Portal".
 values: [""]
 default: [""]
 

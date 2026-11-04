@@ -11,7 +11,7 @@ from fontTools.ttLib import TTFont
 
 FONT_PATH = Path("C:/Windows/Fonts/SegUIVar.ttf")
 TEXT = {
-    "name": ("Software Center", 700),
+    "name": ("Software Portal", 700),
     "tagline": ("Alles bereit für deine Arbeit.", 600),
     "opsi": ("für opsi", 600),
     "description": ("Freigegebene Apps. Einfach installiert.", 400),

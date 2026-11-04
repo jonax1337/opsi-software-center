@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Builds the ready-to-upload opsi package source for "software-center".
+    Builds the ready-to-upload opsi package source for "software-portal".
 
 .DESCRIPTION
     1. Builds the Tauri release (NSIS installer), unless -SkipBuild.
@@ -9,7 +9,7 @@
     4. Optionally copies product icons from -IconSource to CLIENT_DATA\icons
        and maintenance actions (actions.json + scripts) from -ActionSource to
        CLIENT_DATA\actions.
-    5. Packs deploy\opsi into dist-opsi\software-center_<version>-opsi-source.tar.gz
+    5. Packs deploy\opsi into dist-opsi\software-portal_<version>-opsi-source.tar.gz
        (forward-slash paths, extracts cleanly on the Linux opsi server).
 
 .EXAMPLE
@@ -31,7 +31,7 @@ $opsiDir = Join-Path $root "deploy\opsi"
 $distDir = Join-Path $root "dist-opsi"
 $version = (Get-Content (Join-Path $root "package.json") -Raw | ConvertFrom-Json).version
 # Tauri's NSIS naming: <productName>_<version>_<arch>-setup.exe
-$installer = Join-Path $root "src-tauri\target\release\bundle\nsis\Software Center_${version}_x64-setup.exe"
+$installer = Join-Path $root "src-tauri\target\release\bundle\nsis\Software Portal_${version}_x64-setup.exe"
 $utf8NoBom = New-Object System.Text.UTF8Encoding $false
 
 function Set-VersionLine([string]$Path, [string]$Pattern, [string]$Line) {
@@ -62,8 +62,8 @@ $iconsDir = Join-Path $opsiDir "CLIENT_DATA\icons"
 $actionsDir = Join-Path $opsiDir "CLIENT_DATA\actions"
 New-Item -ItemType Directory -Force $filesDir, $iconsDir, $actionsDir, $distDir | Out-Null
 
-Copy-Item -LiteralPath $installer (Join-Path $filesDir "software-center-setup.exe") -Force
-Write-Host "Installer:  $(Split-Path $installer -Leaf) -> CLIENT_DATA\files\software-center-setup.exe" -ForegroundColor Green
+Copy-Item -LiteralPath $installer (Join-Path $filesDir "software-portal-setup.exe") -Force
+Write-Host "Installer:  $(Split-Path $installer -Leaf) -> CLIENT_DATA\files\software-portal-setup.exe" -ForegroundColor Green
 
 Set-VersionLine (Join-Path $opsiDir "OPSI\control") '^version: [^\r\n]*(?=\r?\n\s*priority:)' "version: $version"
 Set-VersionLine (Join-Path $opsiDir "CLIENT_DATA\setup.opsiscript") '^Set \$ProductVersion\$ = "[^"]*"' "Set `$ProductVersion`$ = `"$version`""
@@ -92,12 +92,12 @@ if ($ActionSource) {
     Write-Host "Aktionen:   keine (optional, siehe README -> Wartungsaktionen)" -ForegroundColor Yellow
 }
 
-$archive = Join-Path $distDir "software-center_${version}-opsi-source.tar.gz"
+$archive = Join-Path $distDir "software-portal_${version}-opsi-source.tar.gz"
 # Windows' bsdtar explicitly: a GNU tar from Git would read "C:\..." as host:path
 & (Join-Path $env:WINDIR "System32\tar.exe") -czf $archive -C $opsiDir OPSI CLIENT_DATA
 if ($LASTEXITCODE -ne 0) { throw "tar fehlgeschlagen (ExitCode $LASTEXITCODE)" }
 
 Write-Host "`nPaketquelle: $archive" -ForegroundColor Green
 Write-Host "Auf dem opsi-Server:"
-Write-Host "  mkdir -p /var/lib/opsi/workbench/software-center && tar -xzf software-center_${version}-opsi-source.tar.gz -C /var/lib/opsi/workbench/software-center"
-Write-Host "  cd /var/lib/opsi/workbench/software-center && opsi-makepackage && opsi-package-manager -i software-center_${version}-1.opsi"
+Write-Host "  mkdir -p /var/lib/opsi/workbench/software-portal && tar -xzf software-portal_${version}-opsi-source.tar.gz -C /var/lib/opsi/workbench/software-portal"
+Write-Host "  cd /var/lib/opsi/workbench/software-portal && opsi-makepackage && opsi-package-manager -i software-portal_${version}-1.opsi"

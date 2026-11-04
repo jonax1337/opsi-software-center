@@ -13,7 +13,7 @@ use tauri::{
 pub const CHECK_UPDATES_EVENT: &str = "tray://check-updates";
 
 pub fn create_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
-    let open = MenuItem::with_id(app, "open", "Software Center öffnen", true, None::<&str>)?;
+    let open = MenuItem::with_id(app, "open", "Software Portal öffnen", true, None::<&str>)?;
     let check = MenuItem::with_id(app, "check", "Nach Updates suchen", true, None::<&str>)?;
     let sep = PredefinedMenuItem::separator(app)?;
     let quit = MenuItem::with_id(app, "quit", "Beenden", true, None::<&str>)?;
@@ -23,7 +23,7 @@ pub fn create_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
         // Brand rule: at tray size use the freestanding Soft Stack mark, not
         // the app icon with its light carrier plate. 32 px stays crisp at 200 %.
         .icon(tauri::include_image!("icons/tray.png"))
-        .tooltip("Software Center")
+        .tooltip("Software Portal")
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id.as_ref() {

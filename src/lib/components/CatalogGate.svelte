@@ -23,7 +23,7 @@
     <h2 class="text-base font-semibold">Keine Verbindung zum opsi-Client-Dienst</h2>
     <p class="mt-1 max-w-md text-sm text-muted-foreground">
       Der Dienst „opsiclientd" antwortet nicht. Kurz nach dem Anmelden startet er manchmal noch —
-      das Software Center versucht es automatisch erneut.
+      das Software Portal versucht es automatisch erneut.
     </p>
     {#if kiosk.status?.error}
       <p class="mt-3 max-w-md break-all font-mono text-xs text-muted-foreground/80">

@@ -1,5 +1,5 @@
 ; ----------------------------------------------------------------------
-; Software Center — setup
+; Software Portal — setup
 ; Fast-Exit wenn die Soll-Version bereits installiert ist (enforce-tauglich,
 ; Check gegen Uninstall-Registry-DisplayVersion). Icons, Aktionen und Branding werden
 ; immer aktualisiert, damit geaenderte Produkt-Properties sofort greifen.
@@ -15,6 +15,7 @@ DefVar $InstalledVersion$
 DefVar $DataDir$
 DefVar $InstallDir$
 DefVar $LocalSetup$
+DefVar $LegacyInstallDir$
 DefVar $ExitCode$
 DefVar $CompanyName$
 DefVar $SupportPhone$
@@ -26,8 +27,10 @@ DefStringList $FeaturedList$
 ; Wird von deploy/build-opsi-package.ps1 aus package.json gesetzt — nicht von Hand aendern.
 Set $ProductVersion$ = "0.3.0"
 Set $DataDir$ = "%CommonAppDataDir%\opsi-kiosk"
-Set $InstallDir$ = "%ProgramFiles64Dir%\Software Center"
-Set $LocalSetup$ = "%opsiTmpDir%\software-center-setup.exe"
+Set $InstallDir$ = "%ProgramFiles64Dir%\Software Portal"
+Set $LocalSetup$ = "%opsiTmpDir%\software-portal-setup.exe"
+; Install folder of releases up to 0.3.0, which shipped as "Software Center".
+Set $LegacyInstallDir$ = "%ProgramFiles64Dir%\Software Center"
 
 Set $CompanyName$ = GetProductProperty("company_name", "")
 Set $SupportPhone$ = GetProductProperty("support_phone", "")
@@ -42,16 +45,24 @@ DosInAnIcon_prepare_datadir
 Registry_branding /64Bit
 
 comment "--- Fast-Exit: Soll-Version bereits installiert? ---"
-Set $InstalledVersion$ = GetRegistryStringValue64("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Software Center] DisplayVersion")
+Set $InstalledVersion$ = GetRegistryStringValue64("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Software Portal] DisplayVersion")
 if $InstalledVersion$ = ""
-	Set $InstalledVersion$ = GetRegistryStringValue32("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Software Center] DisplayVersion")
+	Set $InstalledVersion$ = GetRegistryStringValue32("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Software Portal] DisplayVersion")
 endif
 if $InstalledVersion$ = $ProductVersion$
-	comment "Software Center " + $InstalledVersion$ + " bereits installiert -> Fast-Exit."
+	comment "Software Portal " + $InstalledVersion$ + " bereits installiert -> Fast-Exit."
 else
 	comment "--- laufende Instanzen beenden ---"
-	Killtask "Software Center.exe"
+	Killtask "Software Portal.exe"
 	Killtask "opsi-kiosk.exe"
+
+	comment "--- Vorgaenger 'Software Center' (alter Produktname) entfernen ---"
+	Killtask "Software Center.exe"
+	if FileExists("$LegacyInstallDir$\uninstall.exe")
+		Winbatch_uninstall_legacy
+	endif
+	Files_remove_legacy
+	Registry_remove_legacy_autostart /AllNtUserDats
 
 	comment "--- Installer lokal kopieren (nie EXE vom Share starten) ---"
 	Files_copy_setup
@@ -106,8 +117,20 @@ set "featured_products" = "$FeaturedProducts$"
 [Winbatch_install]
 "$LocalSetup$" /S
 
+[Winbatch_uninstall_legacy]
+"$LegacyInstallDir$\uninstall.exe" /S
+
+[Files_remove_legacy]
+delete -sf "$LegacyInstallDir$\"
+
+; The old build registered its autostart under the old product name in every
+; user's HKCU Run key; the renamed app adds its own entry on first start.
+[Registry_remove_legacy_autostart]
+openkey [Software\Microsoft\Windows\CurrentVersion\Run]
+deletevar "Software Center"
+
 [Files_copy_setup]
-copy "%ScriptPath%\files\software-center-setup.exe" "%opsiTmpDir%\"
+copy "%ScriptPath%\files\software-portal-setup.exe" "%opsiTmpDir%\"
 
 [Files_cleanup_tmp]
 delete -f "$LocalSetup$"
@@ -115,4 +138,4 @@ delete -f "$LocalSetup$"
 [LinkFolder_remove_desktop]
 set_basefolder common_desktopdirectory
 set_subfolder ""
-delete_element "Software Center"
+delete_element "Software Portal"

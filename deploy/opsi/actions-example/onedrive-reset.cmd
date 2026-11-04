@@ -1,7 +1,7 @@
 @echo off
-rem Beispielaktion fuer das Software Center: OneDrive zuruecksetzen.
+rem Beispielaktion fuer das Software Portal: OneDrive zuruecksetzen.
 rem Laeuft als angemeldeter Benutzer. Exit-Code 0 = Erfolg; die letzte Ausgabezeile
-rem erscheint im Software Center als Meldung, bei Fehlern die erste Fehlerzeile.
+rem erscheint im Software Portal als Meldung, bei Fehlern die erste Fehlerzeile.
 setlocal
 
 set "ONEDRIVE=%LOCALAPPDATA%\Microsoft\OneDrive\OneDrive.exe"

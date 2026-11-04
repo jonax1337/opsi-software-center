@@ -1,4 +1,4 @@
-# Software Center (opsi-kiosk) — Claude Code Context
+# Software Portal (opsi-kiosk) — Claude Code Context
 
 Tauri 2 + Svelte 5 desktop app: lightweight replacement for the opsi-client-kiosk.
 Talks to the local opsiclientd kiosk JSON-RPC endpoint (`https://localhost:4441/kiosk`,
@@ -10,7 +10,8 @@ overridden at runtime with the **Windows accent color** (DWM registry via
 `theme.svelte.ts`); the static Fluent blue in app.css is only the fallback.
 Light/dark follows the OS automatically (no manual toggle). The Soft Stack identity
 (three blue app cards with a square cutout) is maintained under
-`docs/branding/soft-stack/`; native window/tray/installer icons use this identity.
+`docs/branding/soft-stack/`; native window/taskbar/installer icons are the plate-less mark
+filling the tile (`svg/native-icon.svg` → `tauri icon`), the tray uses `icons/tray.png`.
 
 ## Stack
 
@@ -44,7 +45,7 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
   ≥ 24 h, links skipped). **`diagnostics.rs`** — support ZIP on the (known-folder) desktop via
   System32 `tar.exe`.
 - **`actions.rs`** — admin maintenance scripts ("Aktionen Ihrer IT"): manifest
-  `%ProgramFiles%\Software Center\actions\actions.json` (filled by the opsi package from
+  `%ProgramFiles%\Software Portal\actions\actions.json` (filled by the opsi package from
   `CLIENT_DATA\actions`), run as the user (.ps1/.cmd/.bat, 10-min timeout). The UI only sends
   the action id; the script path is always re-resolved from the manifest and must be a bare
   file name (validated). Last stdout line = success message.
@@ -106,9 +107,9 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
   → `HKLM\SOFTWARE\opsi-kiosk\Branding`; the package recreates `%ProgramData%\opsi-kiosk` with an
   ACL (SYSTEM/Administrators write, Users read). `deploy/build-opsi-package.ps1` builds the release, syncs the version
   from `package.json` into `control` + `setup.opsiscript`, and packs
-  `dist-opsi/software-center_<v>-opsi-source.tar.gz`. Tag `v*` → CI builds + releases it.
+  `dist-opsi/software-portal_<v>-opsi-source.tar.gz`. Tag `v*` → CI builds + releases it.
 - Version lives in `package.json` (tauri.conf.json points at it) and `Cargo.toml`.
-- **GitHub**: https://github.com/jonax1337/opsi-software-center (private).
+- **GitHub**: https://github.com/jonax1337/opsi-software-portal (private).
   The original stock app icon has been replaced by the Soft Stack identity.
 
 ## Conventions (inherited from reclaim)
