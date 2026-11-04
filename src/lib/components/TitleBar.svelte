@@ -6,7 +6,6 @@
   import { systemInfo } from "$lib/system/systemInfo.svelte";
   import { windowControls } from "$lib/system/desktop";
   import { initials } from "$lib/format";
-  import brandMark from "../../assets/mark.svg";
 
   /** Company Portal title bar: accent-colored, back button, app + company name,
    *  centered app search, account avatar and the window's caption buttons
@@ -52,8 +51,6 @@
   </button>
 
   <div data-tauri-drag-region class="flex min-w-0 shrink items-center gap-2.5 pr-4">
-    <!-- The blue mark needs its white plate to stay visible on the accent bar. -->
-    <img src={brandMark} alt="" class="size-6 shrink-0 rounded-sm bg-white p-0.5" />
     <span data-tauri-drag-region class="truncate text-xs">Software Portal</span>
     {#if companyName}
       <span data-tauri-drag-region class="h-4 w-px shrink-0 bg-white/30"></span>
@@ -64,15 +61,23 @@
   </div>
 
   <div data-tauri-drag-region class="flex min-w-0 flex-1 justify-center px-2">
-    <label class="relative w-full max-w-xl">
+    <!-- Fluent TextBox: slightly translucent at rest, solid when focused, and an
+         accent underline that grows from the center (clipped by the rounded box). -->
+    <label class="search-box group relative w-full max-w-xl overflow-hidden rounded-sm">
       <span class="sr-only">Apps suchen</span>
-      <Search class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Search
+        class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground transition-colors duration-150 group-focus-within:text-primary"
+      />
       <input
         type="search"
         bind:value={kiosk.search}
         placeholder="Apps suchen"
-        class="h-8 w-full rounded-sm border border-transparent bg-card pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus-visible:[box-shadow:inset_0_-2px_0_0_var(--primary)]"
+        class="h-8 w-full bg-card/85 pl-9 pr-3 text-sm text-foreground transition-colors duration-150 placeholder:text-muted-foreground outline-none hover:bg-card/95 focus:bg-card"
       />
+      <span
+        aria-hidden="true"
+        class="search-underline pointer-events-none absolute inset-x-0 bottom-0 h-0.5 origin-center scale-x-0 bg-primary group-focus-within:scale-x-100"
+      ></span>
     </label>
   </div>
 
@@ -115,5 +120,13 @@
 <style>
   .caption-glyph {
     font-family: "Segoe Fluent Icons", "Segoe MDL2 Assets", sans-serif;
+  }
+
+  /* Grows in like the nav rail's selection pill (Fluent decelerate); collapses faster. */
+  .search-underline {
+    transition: transform 150ms var(--ease-fluent-accel);
+  }
+  .search-box:focus-within > .search-underline {
+    transition: transform 250ms var(--ease-fluent-decel);
   }
 </style>
