@@ -1,5 +1,7 @@
 <script lang="ts" module>
-  export type Layout = "tiles" | "list";
+  /** `row`: a single row of cards, as many as fit (Company Portal home); the
+   *  rest is reached via "Alle anzeigen". */
+  export type Layout = "tiles" | "list" | "row";
 </script>
 
 <script lang="ts">
@@ -18,7 +20,13 @@
 {#if layout === "list"}
   <ProductTable {products} {onopen} />
 {:else}
-  <div class="grid grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-3 stagger">
+  <!-- Fixed-width cards like Company Portal. For `row`, wrapped rows collapse
+       to zero height and are clipped; -m-1/p-1 keeps the card shadows. -->
+  <div
+    class="grid grid-cols-[repeat(auto-fill,9.5rem)] gap-3 stagger {layout === 'row'
+      ? '-m-1 auto-rows-[0] grid-rows-1 gap-y-0 overflow-hidden p-1'
+      : ''}"
+  >
     {#each products as product (product.productId)}
       <ProductTile {product} onclick={() => onopen(product.productId)} />
     {/each}
