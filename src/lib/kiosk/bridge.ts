@@ -47,21 +47,49 @@ export async function devicePendingReboot(): Promise<boolean> {
   return invoke("device_pending_reboot");
 }
 
-/** Shades of the user's Windows accent color (lightest→darkest), `#rrggbb`.
- *  Fields are null when the accent can't be read (e.g. browser preview). */
-export interface AccentColor {
-  base: string | null;
-  light1: string | null;
-  light2: string | null;
-  light3: string | null;
-  dark1: string | null;
-  dark2: string | null;
-  dark3: string | null;
+/** Restart the computer now (apps with unsaved work can still veto it). */
+export async function deviceRestart(): Promise<void> {
+  return invoke("device_restart");
 }
 
-/** Native Windows accent palette (HKCU). Used to override --primary/--ring. */
-export async function getAccentColor(): Promise<AccentColor> {
-  return invoke("get_accent_color");
+/** Restart Windows Explorer (taskbar, start menu) in the user's session. */
+export async function deviceRestartExplorer(): Promise<void> {
+  return invoke("device_restart_explorer");
+}
+
+export interface CleanupResult {
+  files: number;
+  bytes: number;
+}
+
+/** Delete the user's temp files untouched for a day; files in use are skipped. */
+export async function deviceCleanTemp(): Promise<CleanupResult> {
+  return invoke("device_clean_temp");
+}
+
+/** ZIP with systeminfo, ipconfig, gpresult and readable opsi logs on the
+ *  user's desktop; returns its path. */
+export async function deviceDiagnosticsBundle(): Promise<string> {
+  return invoke("device_diagnostics_bundle");
+}
+
+/** A maintenance script the admin ships via the opsi package
+ *  (`%ProgramFiles%\Software Portal\actions\actions.json`). */
+export interface AdminAction {
+  id: string;
+  label: string;
+  description: string;
+  /** confirmation question; empty = run on click */
+  confirm: string;
+}
+
+export async function adminActionsList(): Promise<AdminAction[]> {
+  return invoke("admin_actions_list");
+}
+
+/** Runs the script as the signed-in user; resolves with its last output line. */
+export async function adminActionRun(id: string): Promise<string | null> {
+  return invoke("admin_action_run", { id });
 }
 
 export interface PcInfo {
@@ -107,6 +135,39 @@ export interface SystemInfo {
  *  (ADSISearcher). `user` is null off-domain. Standard-user-safe. */
 export async function getSystemInfo(): Promise<SystemInfo> {
   return invoke("get_system_info");
+}
+
+/** Company name, IT-support contact and featured apps from the opsi package's
+ *  product properties (`HKLM\SOFTWARE\opsi-kiosk\Branding`). Empty = not set. */
+export interface Branding {
+  companyName: string;
+  supportPhone: string;
+  supportEmail: string;
+  supportUrl: string;
+  /** product ids for the "Ausgewählte Apps" banner, in banner order */
+  featuredProducts: string[];
+  /** company color `#rrggbb` for accents and title bar; "" = default blue */
+  brandColor: string;
+}
+
+export const NO_BRANDING: Branding = {
+  companyName: "",
+  supportPhone: "",
+  supportEmail: "",
+  supportUrl: "",
+  featuredProducts: [],
+  brandColor: "",
+};
+
+export async function getBranding(): Promise<Branding> {
+  return invoke("get_branding");
+}
+
+export type SupportChannel = "email" | "phone" | "website";
+
+/** Open the configured support contact (mail client, phone app, browser). */
+export async function openSupportContact(channel: SupportChannel): Promise<void> {
+  return invoke("open_support_contact", { channel });
 }
 
 /** productId → data-URL for products that have an icon file deployed locally

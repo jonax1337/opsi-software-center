@@ -10,8 +10,11 @@
 </script>
 
 <script lang="ts">
-  import { Menu } from "@lucide/svelte";
+  import { Navigation } from "$lib/ui/icons";
 
+  /** WinUI NavigationView: a 52px icon rail the hamburger widens into the full
+   *  pane, pushing the content aside. Icons keep their position while the pane
+   *  widens; only the labels fade in. */
   type Props = {
     items: NavItem[];
     footer?: NavItem[];
@@ -20,71 +23,93 @@
     open?: boolean;
   };
 
-  let { items, footer = [], value, onselect, open = $bindable(true) }: Props = $props();
+  let { items, footer = [], value, onselect, open = $bindable(false) }: Props = $props();
 
-  // Refs to each nav button so the single selection indicator can travel to the
-  // active one (WinUI: one pill that stretches in the direction of travel and
-  // settles at the target — the "swoosh").
+  const INDICATOR_HEIGHT = 16;
+  const GLIDE = { duration: 260, easing: "cubic-bezier(0.4, 0, 0.2, 1)" };
+  const SHRINK_GROW = { duration: 300, easing: "cubic-bezier(0.8, 0, 0.2, 1)" };
+
   const buttons: Record<string, HTMLButtonElement> = {};
   let indicator = $state<HTMLSpanElement>();
-  let prev: { top: number; h: number } | null = null;
+  /** Where the pill rests and which group (top items / footer) it is in. */
+  let prev: { top: number; inFooter: boolean } | null = null;
 
   $effect(() => {
     const el = buttons[value]; // tracked dep
     if (!el || !indicator) return;
 
-    const to = { top: el.offsetTop + el.offsetHeight / 2 - 8, h: 16 };
-    const reduce =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const to = {
+      top: el.offsetTop + el.offsetHeight / 2 - INDICATOR_HEIGHT / 2,
+      inFooter: footer.some((item) => item.value === value),
+    };
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     indicator.style.opacity = "1";
-    if (prev && !reduce) {
-      // Compact pill that glides, with only a subtle mid-travel elongation
-      // (capped at 12px) — gliding, not a rubber band.
-      const gap = Math.abs(to.top - prev.top);
-      const stretch = Math.min(gap * 0.38, 16);
-      const midTop = (prev.top + to.top) / 2 - stretch / 2;
-      indicator.animate(
-        [
-          { top: `${prev.top}px`, height: `${prev.h}px` },
-          { top: `${midTop}px`, height: `${16 + stretch}px`, offset: 0.5 },
-          { top: `${to.top}px`, height: `${to.h}px` },
-        ],
-        { duration: 260, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
-      );
+    if (prev && prev.top !== to.top && !reduce) {
+      animateIndicator(indicator, prev.top, to.top, prev.inFooter !== to.inFooter);
     }
     // Resting state (= last keyframe), so there's no snap after the animation.
     indicator.style.top = `${to.top}px`;
-    indicator.style.height = `${to.h}px`;
+    indicator.style.height = `${INDICATOR_HEIGHT}px`;
     prev = to;
   });
+
+  /** Within a group the pill glides; between the top items and the footer it
+   *  would slide across the empty rail, so it shrinks away and grows instead. */
+  function animateIndicator(pill: HTMLSpanElement, from: number, to: number, crossesGroups: boolean) {
+    const h = `${INDICATOR_HEIGHT}px`;
+    if (!crossesGroups) {
+      const distance = Math.abs(to - from);
+      // Glide with a subtle mid-travel elongation — gliding, not a rubber band.
+      const stretch = Math.min(distance * 0.38, INDICATOR_HEIGHT);
+      const mid = (from + to) / 2 - stretch / 2;
+      pill.animate(
+        [
+          { top: `${from}px`, height: h },
+          { top: `${mid}px`, height: `${INDICATOR_HEIGHT + stretch}px`, offset: 0.5 },
+          { top: `${to}px`, height: h },
+        ],
+        GLIDE,
+      );
+      return;
+    }
+    // Shrink to nothing at the old item, jump while invisible, grow at the new one.
+    const center = INDICATOR_HEIGHT / 2;
+    pill.animate(
+      [
+        { top: `${from}px`, height: h },
+        { top: `${from + center}px`, height: "0px", offset: 0.45 },
+        { top: `${to + center}px`, height: "0px", offset: 0.55 },
+        { top: `${to}px`, height: h },
+      ],
+      SHRINK_GROW,
+    );
+  }
 </script>
 
 <nav
-  class="relative shrink-0 flex flex-col gap-1 py-2 transition-[width] duration-[250ms] ease-[cubic-bezier(0.8,0,0.2,1)] select-none {open
+  class="relative flex shrink-0 flex-col gap-1 overflow-hidden py-2 select-none transition-[width] duration-200 ease-[cubic-bezier(0.8,0,0.2,1)] {open
     ? 'w-64'
     : 'w-[52px]'}"
   aria-label="Hauptnavigation"
 >
-  <!-- Single moving selection indicator: one 3px accent pill, flush against the
-       selected item's grey fill (left-2 = the item's mx-2 edge). Position +
-       stretch are driven imperatively via the Web Animations API. -->
+  <!-- Single selection indicator: a 3px accent pill at the item's left edge,
+       moved imperatively via the Web Animations API. -->
   <span
     bind:this={indicator}
-    class="pointer-events-none absolute left-2 w-[3px] rounded-full bg-primary opacity-0"
-    style="height: 16px;"
+    class="pointer-events-none absolute left-1.5 z-10 w-[3px] rounded-full bg-primary opacity-0"
+    style="height: {INDICATOR_HEIGHT}px;"
   ></span>
 
-  <!-- Hamburger toggle — WinUI NavigationView pane button -->
+  <!-- Hamburger: same 40px box and left offset as the items, so nothing shifts. -->
   <button
     type="button"
-    class="mx-2 mb-1 grid h-10 w-9 place-items-center rounded-sm text-foreground hover:bg-surface-3 active:bg-surface-1 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+    class="mx-1.5 mb-1 grid h-9 w-10 shrink-0 place-items-center rounded-sm text-foreground hover:bg-surface-3 active:bg-surface-1 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
     aria-label={open ? "Navigation einklappen" : "Navigation ausklappen"}
     aria-expanded={open}
     onclick={() => (open = !open)}
   >
-    <Menu class="size-5" />
+    <Navigation class="size-5" />
   </button>
 
   {#snippet navButton(item: NavItem)}
@@ -95,18 +120,26 @@
       title={!open ? item.label : undefined}
       aria-current={selected ? "page" : undefined}
       onclick={() => onselect(item.value)}
-      class="relative mx-2 flex h-10 items-center rounded-sm text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background {open
-        ? 'gap-3 px-3'
-        : 'justify-center px-0'} {selected
+      class="relative mx-1.5 flex h-9 shrink-0 items-center gap-3 rounded-sm px-2.5 text-sm transition-colors outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring {selected
         ? 'bg-surface-3 font-semibold text-foreground'
         : 'font-normal text-foreground/90 hover:bg-surface-2'}"
     >
       <item.icon class="size-5 shrink-0 {selected ? 'text-primary' : 'text-muted-foreground'}" />
-      {#if open}
-        <span class="truncate">{item.label}</span>
-        {#if item.count !== undefined}
-          <span class="ml-auto text-xs tabular-nums text-muted-foreground">{item.count}</span>
-        {/if}
+      <span
+        class="min-w-0 flex-1 truncate whitespace-nowrap text-left transition-opacity duration-150 {open
+          ? 'opacity-100 delay-75'
+          : 'opacity-0'}"
+      >
+        {item.label}
+      </span>
+      {#if item.count !== undefined}
+        <span
+          class="text-xs tabular-nums text-muted-foreground transition-opacity duration-150 {open
+            ? 'opacity-100'
+            : 'opacity-0'}"
+        >
+          {item.count}
+        </span>
       {/if}
     </button>
   {/snippet}

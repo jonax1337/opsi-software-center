@@ -1,0 +1,33 @@
+<script lang="ts">
+  import { ArrowCircleUp, CheckmarkCircle, Clock, Spinner } from "$lib/ui/icons";
+  import { kiosk } from "$lib/kiosk/store.svelte";
+  import { productState } from "$lib/kiosk/product";
+  import type { KioskProduct } from "$lib/kiosk/types";
+
+  /** One-line install status (icon + label), as under Company Portal tiles.
+   *  Renders nothing for a plain available app — like Company Portal. */
+  let { product }: { product: KioskProduct } = $props();
+
+  const state = $derived(productState(product, kiosk.processing));
+  const runningLabel = $derived(
+    product.actionRequest === "uninstall" ? "Wird deinstalliert…" : "Wird installiert…",
+  );
+</script>
+
+{#if state !== "available"}
+  <span class="inline-flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+    {#if state === "running"}
+      <Spinner class="size-3.5 shrink-0 animate-spin text-primary" />
+      <span class="truncate">{runningLabel}</span>
+    {:else if state === "pending"}
+      <Clock class="size-3.5 shrink-0" />
+      <span class="truncate">Ausstehend</span>
+    {:else if state === "update"}
+      <ArrowCircleUp class="size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+      <span class="truncate">Update verfügbar</span>
+    {:else}
+      <CheckmarkCircle class="size-3.5 shrink-0 text-success" />
+      <span class="truncate">Installiert</span>
+    {/if}
+  </span>
+{/if}

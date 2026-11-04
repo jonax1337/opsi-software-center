@@ -77,33 +77,26 @@ try {
 "#;
 
 /// PC hardware facts plus the signed-in user's AD attributes, as a JSON object
-/// `{ pc: {...}, user: {...}|null }`. `user` is null off-domain or when the
-/// directory query fails. Returned as a passthrough value — the frontend owns
-/// the shape (see bridge.ts `SystemInfo`).
+/// `{ pc: {...}, user: {...}|null, diag: {...} }`. `user` is null off-domain or
+/// when the directory query fails. Returned as a passthrough value — the
+/// frontend owns the shape (see bridge.ts `SystemInfo`).
 #[tauri::command]
 pub async fn get_system_info() -> Result<serde_json::Value, String> {
     #[cfg(windows)]
     {
-        tauri::async_runtime::spawn_blocking(|| {
-            use std::os::windows::process::CommandExt;
-            const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-            let windir = std::env::var("WINDIR").unwrap_or_else(|_| r"C:\Windows".into());
-            let ps = format!(r"{windir}\System32\WindowsPowerShell\v1.0\powershell.exe");
-            let out = std::process::Command::new(ps)
+        crate::winproc::blocking(|| {
+            let out = crate::winproc::windows_tool(r"System32\WindowsPowerShell\v1.0\powershell.exe")
                 .args(["-NoProfile", "-NonInteractive", "-Command", SYSINFO_PS])
-                .creation_flags(CREATE_NO_WINDOW)
                 .output()
-                .map_err(|e| e.to_string())?;
+                .map_err(|e| format!("PowerShell konnte nicht gestartet werden: {e}"))?;
             let stdout = String::from_utf8_lossy(&out.stdout);
-            serde_json::from_str(stdout.trim()).map_err(|e| {
-                format!("invalid system-info JSON: {e} — output: {}", stdout.trim())
-            })
+            serde_json::from_str(stdout.trim())
+                .map_err(|e| format!("invalid system-info JSON: {e} — output: {}", stdout.trim()))
         })
-        .await
-        .map_err(|e| e.to_string())?
+        .await?
     }
     #[cfg(not(windows))]
     {
-        Ok(serde_json::json!({ "pc": null, "user": null }))
+        Ok(serde_json::json!({ "pc": null, "user": null, "diag": null }))
     }
 }

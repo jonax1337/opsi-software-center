@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Search } from "@lucide/svelte";
+  import { Search } from "$lib/ui/icons";
   import { cn } from "$lib/utils";
 
   type Props = {

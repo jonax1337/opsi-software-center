@@ -9,8 +9,8 @@
   --card-foreground: oklch(0.16 0.01 285);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.16 0.01 285);
-  /* Microsoft blue #0078D4 */
-  --primary: oklch(0.568 0.167 251);
+  /* Soft Stack brand blue #185ABD — default when no company color (`brand_color`) is set */
+  --primary: oklch(0.488 0.169 259.2);
   --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.97 0.006 285);
   --secondary-foreground: oklch(0.205 0.01 285);
@@ -24,9 +24,16 @@
   --warning: oklch(0.74 0.16 75);
   --border: oklch(0.92 0.006 285);
   --input: oklch(0.92 0.006 285);
-  --ring: oklch(0.568 0.167 251);
+  --ring: oklch(0.488 0.169 259.2);
+  /* Company-Portal-style title bar in the accent color (company color at
+     runtime, see theme.svelte.ts); always light text. */
+  --titlebar: oklch(0.488 0.169 259.2);
+  --titlebar-foreground: oklch(0.99 0 0);
   /* Fluent control geometry: 4px controls (radius-sm), 8px cards (radius-lg). */
   --radius: 0.5rem;
+  /* Stand-in for the Mica backdrop where there is none (browser preview). */
+  --mica-fallback: oklch(0.965 0 0);
+  color-scheme: light;
 
   /* Surface ladder — translucent foreground-tinted overlays for in-page chrome.
      Use `bg-surface-1` for the lowest-emphasis surface (selectable-tile rest
@@ -48,22 +55,25 @@
   --ease-fluent-standard: cubic-bezier(0.8, 0, 0.2, 1);
 }
 
+/* Fluent dark is neutral grey and layers get LIGHTER as they rise:
+   Mica #202020 → page layer #282828 → cards #323232 → flyouts #2c2c2c. */
 [data-theme="dark"] {
-  --background: oklch(0.13 0.012 285);
-  --foreground: oklch(0.985 0.003 285);
-  --card: oklch(0.18 0.015 285);
-  --card-foreground: oklch(0.985 0.003 285);
-  --popover: oklch(0.18 0.015 285);
-  --popover-foreground: oklch(0.985 0.003 285);
-  /* lighter Fluent blue for dark mode (#479EF5-ish) */
+  --background: oklch(0.27 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.315 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.29 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  /* lighter Fluent blue for dark mode (#479EF5-ish); dark text on it, as
+     Windows does for its light accent fills */
   --primary: oklch(0.686 0.153 251);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.25 0.014 285);
-  --secondary-foreground: oklch(0.985 0.003 285);
-  --muted: oklch(0.22 0.012 285);
-  --muted-foreground: oklch(0.7 0.014 285);
-  --accent: oklch(0.27 0.018 285);
-  --accent-foreground: oklch(0.985 0.003 285);
+  --primary-foreground: oklch(0.16 0 0);
+  --secondary: oklch(0.33 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.3 0 0);
+  --muted-foreground: oklch(0.8 0 0);
+  --accent: oklch(0.35 0 0);
+  --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.7 0.19 22);
   --destructive-foreground: oklch(0.99 0 0);
   --success: oklch(0.72 0.18 155);
@@ -71,6 +81,9 @@
   --border: oklch(1 0 0 / 8%);
   --input: oklch(1 0 0 / 12%);
   --ring: oklch(0.686 0.153 251);
+  --titlebar: oklch(0.4 0.14 259);
+  --mica-fallback: oklch(0.245 0 0);
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -95,6 +108,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-titlebar: var(--titlebar);
+  --color-titlebar-foreground: var(--titlebar-foreground);
 
   --color-surface-1: var(--surface-1);
   --color-surface-2: var(--surface-2);
@@ -132,6 +147,11 @@
   }
   html {
     background-color: transparent;
+  }
+  /* The desktop window is transparent so Mica shows through; a plain browser
+     would put its white canvas there instead and wash out dark mode. */
+  html[data-browser-preview] {
+    background-color: var(--mica-fallback);
   }
   body {
     /* Transparent so the native Mica backdrop shows as the app's base layer
@@ -305,6 +325,21 @@
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }
   }
+  /* Fluent indeterminate ProgressBar: an accent segment sweeping across the
+     track (opsi reports no percentage). */
+  @keyframes progress-sweep {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(250%); }
+  }
+  .progress-indeterminate::before {
+    content: "";
+    display: block;
+    width: 40%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--primary);
+    animation: progress-sweep 1.6s var(--ease-fluent-standard) infinite;
+  }
   /* Plain fade — used on containers whose children already stagger upward, so
      the motion doesn't compound into a double-slide. */
   .animate-fade {
@@ -350,6 +385,9 @@
        spinner reads as a hung UI). */
     .animate-spin {
       animation-duration: 1s !important;
+    }
+    .progress-indeterminate::before {
+      animation-duration: 1.6s !important;
     }
   }
 }

@@ -1,5 +1,5 @@
 ; ----------------------------------------------------------------------
-; Software Center — uninstall
+; Software Portal — uninstall
 ; ----------------------------------------------------------------------
 [Actions]
 requiredWinstVersion >= "4.12.4"
@@ -7,10 +7,10 @@ ScriptErrorMessages=off
 
 DefVar $InstallDir$
 
-Set $InstallDir$ = "%ProgramFiles64Dir%\Software Center"
+Set $InstallDir$ = "%ProgramFiles64Dir%\Software Portal"
 
 comment "--- laufende Instanzen beenden ---"
-Killtask "Software Center.exe"
+Killtask "Software Portal.exe"
 Killtask "opsi-kiosk.exe"
 
 comment "--- NSIS-Uninstaller ausfuehren ---"
@@ -20,6 +20,7 @@ endif
 
 comment "--- Reste entfernen (Startmenue-/Desktop-Links raeumt der NSIS-Uninstaller) ---"
 Files_cleanup
+Registry_remove_branding /64Bit
 
 [Winbatch_uninstall]
 "$InstallDir$\uninstall.exe" /S
@@ -27,3 +28,6 @@ Files_cleanup
 [Files_cleanup]
 delete -sf "$InstallDir$\"
 delete -sf "%CommonAppDataDir%\opsi-kiosk\"
+
+[Registry_remove_branding]
+deletekey [HKEY_LOCAL_MACHINE\SOFTWARE\opsi-kiosk]

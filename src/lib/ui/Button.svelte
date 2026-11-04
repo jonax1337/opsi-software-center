@@ -8,8 +8,9 @@
     base: "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors duration-150 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background cursor-pointer",
     variants: {
       variant: {
+        // Fluent AccentButton disabled state: neutral fill + dimmed text, not a faded accent.
         default:
-          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/80",
+          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 active:bg-primary/80 disabled:opacity-100 disabled:bg-foreground/15 disabled:text-foreground/45 disabled:shadow-none",
         destructive:
           "bg-destructive text-white shadow-sm hover:bg-destructive/90 active:bg-destructive/80 focus-visible:ring-destructive",
         outline:

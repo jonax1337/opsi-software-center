@@ -1,0 +1,267 @@
+[
+  {
+    "input": "svg/mark.svg",
+    "output": "png/mark/16.png",
+    "width": 16
+  },
+  {
+    "input": "svg/mark.svg",
+    "output": "png/mark/24.png",
+    "width": 24
+  },
+  {
+    "input": "svg/mark.svg",
+    "output": "png/mark/32.png",
+    "width": 32
+  },
+  {
+    "input": "svg/mark.svg",
+    "output": "png/mark/48.png",
+    "width": 48
+  },
+  {
+    "input": "svg/mark.svg",
+    "output": "png/mark/64.png",
+    "width": 64
+  },
+  {
+    "input": "svg/mark.svg",
+    "output": "png/mark/128.png",
+    "width": 128
+  },
+  {
+    "input": "svg/mark.svg",
+    "output": "png/mark/256.png",
+    "width": 256
+  },
+  {
+    "input": "svg/mark.svg",
+    "output": "png/mark/512.png",
+    "width": 512
+  },
+  {
+    "input": "svg/mark.svg",
+    "output": "png/mark/1024.png",
+    "width": 1024
+  },
+  {
+    "input": "svg/mark.svg",
+    "output": "png/mark/2048.png",
+    "width": 2048
+  },
+  {
+    "input": "svg/mark-flat.svg",
+    "output": "png/mark-flat/512.png",
+    "width": 512
+  },
+  {
+    "input": "svg/mark-flat.svg",
+    "output": "png/mark-flat/1024.png",
+    "width": 1024
+  },
+  {
+    "input": "svg/mark-mono-dark.svg",
+    "output": "png/mark-mono-dark/512.png",
+    "width": 512
+  },
+  {
+    "input": "svg/mark-mono-dark.svg",
+    "output": "png/mark-mono-dark/1024.png",
+    "width": 1024
+  },
+  {
+    "input": "svg/mark-mono-light.svg",
+    "output": "png/mark-mono-light/512.png",
+    "width": 512
+  },
+  {
+    "input": "svg/mark-mono-light.svg",
+    "output": "png/mark-mono-light/1024.png",
+    "width": 1024
+  },
+  {
+    "input": "svg/mark-mono-blue.svg",
+    "output": "png/mark-mono-blue/512.png",
+    "width": 512
+  },
+  {
+    "input": "svg/mark-mono-blue.svg",
+    "output": "png/mark-mono-blue/1024.png",
+    "width": 1024
+  },
+  {
+    "input": "svg/logo-horizontal.svg",
+    "output": "png/logo-horizontal.png",
+    "width": 1100
+  },
+  {
+    "input": "svg/logo-horizontal.svg",
+    "output": "png/logo-horizontal@2x.png",
+    "width": 2200
+  },
+  {
+    "input": "svg/logo-stacked.svg",
+    "output": "png/logo-stacked.png",
+    "width": 960
+  },
+  {
+    "input": "svg/logo-stacked.svg",
+    "output": "png/logo-stacked@2x.png",
+    "width": 1920
+  },
+  {
+    "input": "svg/wordmark.svg",
+    "output": "png/wordmark.png",
+    "width": 1820
+  },
+  {
+    "input": "svg/logo-horizontal-inverse.svg",
+    "output": "png/logo-horizontal-inverse.png",
+    "width": 1100
+  },
+  {
+    "input": "svg/logo-horizontal-inverse.svg",
+    "output": "png/logo-horizontal-inverse@2x.png",
+    "width": 2200
+  },
+  {
+    "input": "svg/logo-stacked-inverse.svg",
+    "output": "png/logo-stacked-inverse.png",
+    "width": 960
+  },
+  {
+    "input": "svg/logo-stacked-inverse.svg",
+    "output": "png/logo-stacked-inverse@2x.png",
+    "width": 1920
+  },
+  {
+    "input": "svg/wordmark-inverse.svg",
+    "output": "png/wordmark-inverse.png",
+    "width": 1820
+  },
+  {
+    "input": "svg/app-icon.svg",
+    "output": "png/app-icon/16.png",
+    "width": 16
+  },
+  {
+    "input": "svg/app-icon.svg",
+    "output": "png/app-icon/24.png",
+    "width": 24
+  },
+  {
+    "input": "svg/app-icon.svg",
+    "output": "png/app-icon/32.png",
+    "width": 32
+  },
+  {
+    "input": "svg/app-icon.svg",
+    "output": "png/app-icon/48.png",
+    "width": 48
+  },
+  {
+    "input": "svg/app-icon.svg",
+    "output": "png/app-icon/64.png",
+    "width": 64
+  },
+  {
+    "input": "svg/app-icon.svg",
+    "output": "png/app-icon/128.png",
+    "width": 128
+  },
+  {
+    "input": "svg/app-icon.svg",
+    "output": "png/app-icon/256.png",
+    "width": 256
+  },
+  {
+    "input": "svg/app-icon.svg",
+    "output": "png/app-icon/512.png",
+    "width": 512
+  },
+  {
+    "input": "svg/app-icon.svg",
+    "output": "png/app-icon/1024.png",
+    "width": 1024
+  },
+  {
+    "input": "svg/app-icon.svg",
+    "output": "png/app-icon/2048.png",
+    "width": 2048
+  },
+  {
+    "input": "svg/app-icon-dark.svg",
+    "output": "png/app-icon-dark/16.png",
+    "width": 16
+  },
+  {
+    "input": "svg/app-icon-dark.svg",
+    "output": "png/app-icon-dark/24.png",
+    "width": 24
+  },
+  {
+    "input": "svg/app-icon-dark.svg",
+    "output": "png/app-icon-dark/32.png",
+    "width": 32
+  },
+  {
+    "input": "svg/app-icon-dark.svg",
+    "output": "png/app-icon-dark/48.png",
+    "width": 48
+  },
+  {
+    "input": "svg/app-icon-dark.svg",
+    "output": "png/app-icon-dark/64.png",
+    "width": 64
+  },
+  {
+    "input": "svg/app-icon-dark.svg",
+    "output": "png/app-icon-dark/128.png",
+    "width": 128
+  },
+  {
+    "input": "svg/app-icon-dark.svg",
+    "output": "png/app-icon-dark/256.png",
+    "width": 256
+  },
+  {
+    "input": "svg/app-icon-dark.svg",
+    "output": "png/app-icon-dark/512.png",
+    "width": 512
+  },
+  {
+    "input": "svg/app-icon-dark.svg",
+    "output": "png/app-icon-dark/1024.png",
+    "width": 1024
+  },
+  {
+    "input": "svg/app-icon-dark.svg",
+    "output": "png/app-icon-dark/2048.png",
+    "width": 2048
+  },
+  {
+    "input": "banners/readme-banner.svg",
+    "output": "banners/readme-banner.png",
+    "width": 1600
+  },
+  {
+    "input": "banners/readme-banner.svg",
+    "output": "banners/readme-banner@2x.png",
+    "width": 3200
+  },
+  {
+    "input": "banners/readme-banner-dark.svg",
+    "output": "banners/readme-banner-dark.png",
+    "width": 1600
+  },
+  {
+    "input": "banners/readme-banner-dark.svg",
+    "output": "banners/readme-banner-dark@2x.png",
+    "width": 3200
+  },
+  {
+    "input": "social/social-preview.svg",
+    "output": "social/social-preview.png",
+    "width": 1200
+  }
+]

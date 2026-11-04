@@ -4,11 +4,11 @@ depends:
 
 [Product]
 type: localboot
-id: software-center
-name: Software Center
-description: Self-Service Software Center — moderner Ersatz für den opsi-client-kiosk (Software on Demand)
-advice:
-version: 0.3.0
+id: software-portal
+name: Software Portal
+description: Self-Service Software Portal — moderner Ersatz für den opsi-client-kiosk (Software on Demand)
+advice: Benötigt opsi-client-agent 4.3 mit aktiver Kiosk-API und konfiguriertem Software-on-Demand. Firmenname und Support-Kontakt über die Produkt-Properties setzen.
+version: 0.4.0
 priority: 0
 licenseRequired: False
 productClasses:
@@ -19,3 +19,57 @@ alwaysScript:
 onceScript:
 customScript:
 userLoginScript:
+
+[ProductProperty]
+type: unicode
+name: company_name
+multivalue: False
+editable: True
+description: Firmenname, der im Software Portal angezeigt wird (Startseite, Hilfe & Support). Leer = "Software Portal".
+values: [""]
+default: [""]
+
+[ProductProperty]
+type: unicode
+name: support_phone
+multivalue: False
+editable: True
+description: Telefonnummer des IT-Supports (Hilfe & Support). Leer = nicht anzeigen.
+values: [""]
+default: [""]
+
+[ProductProperty]
+type: unicode
+name: support_email
+multivalue: False
+editable: True
+description: E-Mail-Adresse des IT-Supports (Hilfe & Support). Leer = nicht anzeigen.
+values: [""]
+default: [""]
+
+[ProductProperty]
+type: unicode
+name: support_url
+multivalue: False
+editable: True
+description: Helpdesk-/Ticket-Website, muss mit https:// oder http:// beginnen. Leer = nicht anzeigen.
+values: [""]
+default: [""]
+
+[ProductProperty]
+type: unicode
+name: brand_color
+multivalue: False
+editable: True
+description: Firmenfarbe für Schaltflächen, Auswahl und Titelleiste als Hex-Wert, z. B. #E30613. Leer oder ungültig = Software-Portal-Blau.
+values: [""]
+default: [""]
+
+[ProductProperty]
+type: unicode
+name: featured_products
+multivalue: True
+editable: True
+description: Produkt-IDs fuer das Banner "Ausgewaehlte Apps" auf der Startseite, in dieser Reihenfolge. Leer = kein Banner.
+values: []
+default: []
