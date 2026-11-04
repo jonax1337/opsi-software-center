@@ -20,7 +20,9 @@ pub fn create_tray<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let menu = Menu::with_items(app, &[&open, &check, &sep, &quit])?;
 
     TrayIconBuilder::with_id("main")
-        .icon(app.default_window_icon().unwrap().clone())
+        // Brand rule: at tray size use the freestanding Soft Stack mark, not
+        // the app icon with its light carrier plate. 32 px stays crisp at 200 %.
+        .icon(tauri::include_image!("icons/tray.png"))
         .tooltip("Software Center")
         .menu(&menu)
         .show_menu_on_left_click(false)

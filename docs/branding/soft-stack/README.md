@@ -58,7 +58,10 @@ UI-Schrift: **Segoe UI Variable**, danach Segoe UI, system-ui, sans-serif. Über
 
 - Der Projekt-README verwendet das passende helle bzw. dunkle PNG-Banner.
 - `app-icon.png`, `src/assets/icon.png` und `src/assets/icon.svg` sind aktualisiert.
-- `src-tauri/icons/` enthält die neu exportierten nativen Icons. Fenster, Infobereich und Installer verwenden die vorhandene Tauri-Icon-Anbindung.
+- `src-tauri/icons/` enthält die neu exportierten nativen Icons; Fenster, Taskleiste und Installer verwenden sie über die Tauri-Icon-Anbindung.
+- Der Infobereich (Tray) zeigt gemäß der 16-px-Regel das freistehende Zeichen ohne Trägerfläche: `src-tauri/icons/tray.png` (Kopie von `png/mark/32.png`, scharf bis 200 % Skalierung).
+- In der App steht das Zeichen (`src/assets/mark.svg`) mit dem Produktnamen oben im Navigationsbereich.
+- Die Fallback-Akzentfarbe (wenn die Windows-Akzentfarbe nicht lesbar ist) ist das Primärblau `#185ABD`.
 - Das Browser-Favicon verwendet das freistehende SVG-Zeichen.
 
 ## Quellen und erneuter Export

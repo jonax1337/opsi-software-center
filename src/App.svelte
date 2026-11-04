@@ -12,6 +12,7 @@
   import SettingsView from "$lib/views/SettingsView.svelte";
   import { kiosk } from "$lib/kiosk/store.svelte";
   import type { Filter } from "$lib/kiosk/product";
+  import brandMark from "./assets/mark.svg";
 
   type View = "home" | "apps" | "downloads" | "help" | "settings";
 
@@ -90,6 +91,10 @@
     >
       {#snippet header(open)}
         {#if open}
+          <div class="mb-3 flex items-center gap-2.5 px-1">
+            <img src={brandMark} alt="" class="size-6 shrink-0" />
+            <span class="truncate text-sm font-semibold">Software Center</span>
+          </div>
           <SearchInput bind:value={kiosk.search} placeholder="Apps suchen" />
         {:else}
           <button

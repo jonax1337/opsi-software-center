@@ -42,7 +42,8 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
 - **`inventory.rs`** — `get_system_info` (CIM/WMI + ADSI via a hard-coded PowerShell script).
 - **`winproc.rs`** — `windows_tool()` (absolute %WINDIR% path, CREATE_NO_WINDOW),
   `shell_open()` (ShellExecuteW, never explorer.exe), `blocking()` — use these for every external process.
-- **`system.rs`** — `get_accent_color`. **`tray.rs`** — tray icon/menu, `show_main()`.
+- **`system.rs`** — `get_accent_color`. **`tray.rs`** — tray icon/menu, `show_main()`; the tray
+  uses the freestanding brand mark `icons/tray.png` (brand rule: no carrier plate at 16 px).
 - **`lib.rs`** — plugin + command registration, close-to-tray, autostart flag.
 
 ### Frontend (`src/`)
