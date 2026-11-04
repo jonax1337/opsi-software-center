@@ -34,16 +34,18 @@ describe("atLeast", () => {
 
   it("rejects with the original error, but only after the minimum duration", async () => {
     const error = new Error("offline");
+    const done = atLeast(Promise.reject(error), 2000);
+    // Attach the assertion before the timers run, so the rejection is handled
+    // the moment it happens (otherwise Vitest reports an unhandled rejection).
+    const assertion = expect(done).rejects.toBe(error);
     let rejected = false;
-    const done = atLeast(Promise.reject(error), 2000).catch((e: unknown) => {
-      rejected = true;
-      throw e;
-    });
+    done.catch(() => (rejected = true));
 
     await vi.advanceTimersByTimeAsync(1999);
     expect(rejected).toBe(false);
 
     await vi.advanceTimersByTimeAsync(1);
-    await expect(done).rejects.toBe(error);
+    await assertion;
+    expect(rejected).toBe(true);
   });
 });
