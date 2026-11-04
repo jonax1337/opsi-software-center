@@ -1,8 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { Laptop } from "$lib/ui/icons";
-  import { Card, CardContent, DataField, PageHeader, SectionHeading } from "$lib/ui";
+  import { Card, CardContent, DataField, InfoBanner, PageHeader, SectionHeading } from "$lib/ui";
+  import AdminActions from "$lib/components/AdminActions.svelte";
   import SupportTools from "$lib/components/SupportTools.svelte";
+  import { kiosk } from "$lib/kiosk/store.svelte";
   import { systemInfo } from "$lib/system/systemInfo.svelte";
   import {
     EM_DASH,
@@ -69,6 +71,12 @@
 <Card class="card-inset">
   <CardContent>
     <div class="space-y-5">
+      {#if kiosk.rebootPending}
+        <InfoBanner tone="warning">
+          Ein Neustart steht aus, um Aktualisierungen abzuschließen. Starten Sie den Computer neu, sobald
+          es passt.
+        </InfoBanner>
+      {/if}
       {#if diag}
         <div class="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
           <DataField label="Anmeldeserver (DC)" value={present(diag.logonServer)} />
@@ -83,3 +91,5 @@
     </div>
   </CardContent>
 </Card>
+
+<AdminActions />

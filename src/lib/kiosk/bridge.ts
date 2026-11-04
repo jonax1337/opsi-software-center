@@ -47,6 +47,51 @@ export async function devicePendingReboot(): Promise<boolean> {
   return invoke("device_pending_reboot");
 }
 
+/** Restart the computer now (apps with unsaved work can still veto it). */
+export async function deviceRestart(): Promise<void> {
+  return invoke("device_restart");
+}
+
+/** Restart Windows Explorer (taskbar, start menu) in the user's session. */
+export async function deviceRestartExplorer(): Promise<void> {
+  return invoke("device_restart_explorer");
+}
+
+export interface CleanupResult {
+  files: number;
+  bytes: number;
+}
+
+/** Delete the user's temp files untouched for a day; files in use are skipped. */
+export async function deviceCleanTemp(): Promise<CleanupResult> {
+  return invoke("device_clean_temp");
+}
+
+/** ZIP with systeminfo, ipconfig, gpresult and readable opsi logs on the
+ *  user's desktop; returns its path. */
+export async function deviceDiagnosticsBundle(): Promise<string> {
+  return invoke("device_diagnostics_bundle");
+}
+
+/** A maintenance script the admin ships via the opsi package
+ *  (`%ProgramFiles%\Software Center\actions\actions.json`). */
+export interface AdminAction {
+  id: string;
+  label: string;
+  description: string;
+  /** confirmation question; empty = run on click */
+  confirm: string;
+}
+
+export async function adminActionsList(): Promise<AdminAction[]> {
+  return invoke("admin_actions_list");
+}
+
+/** Runs the script as the signed-in user; resolves with its last output line. */
+export async function adminActionRun(id: string): Promise<string | null> {
+  return invoke("admin_action_run", { id });
+}
+
 /** Shades of the user's Windows accent color (lightest→darkest), `#rrggbb`.
  *  Fields are null when the accent can't be read (e.g. browser preview). */
 export interface AccentColor {

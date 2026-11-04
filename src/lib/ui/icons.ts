@@ -27,6 +27,7 @@ export { default as ArrowDownload } from "~icons/fluent/arrow-download-16-regula
 export { default as ArrowLeft } from "~icons/fluent/arrow-left-16-regular";
 export { default as ArrowSync } from "~icons/fluent/arrow-sync-16-regular";
 export { default as Box } from "~icons/fluent/box-16-regular";
+export { default as Broom } from "~icons/fluent/broom-16-regular";
 export { default as Call } from "~icons/fluent/call-16-regular";
 export { default as Checkmark } from "~icons/fluent/checkmark-16-regular";
 export { default as CheckmarkCircle } from "~icons/fluent/checkmark-circle-16-regular";
@@ -34,16 +35,19 @@ export { default as ChevronDown } from "~icons/fluent/chevron-down-16-regular";
 export { default as ChevronRight } from "~icons/fluent/chevron-right-16-regular";
 export { default as Clock } from "~icons/fluent/clock-16-regular";
 export { default as Delete } from "~icons/fluent/delete-16-regular";
+export { default as Desktop } from "~icons/fluent/desktop-16-regular";
 export { default as Dismiss } from "~icons/fluent/dismiss-16-regular";
 export { default as DismissCircle } from "~icons/fluent/dismiss-circle-16-regular";
 export { default as DocumentText } from "~icons/fluent/document-text-16-regular";
 export { default as ErrorCircle } from "~icons/fluent/error-circle-16-regular";
+export { default as FolderZip } from "~icons/fluent/folder-zip-16-regular";
 export { default as Globe } from "~icons/fluent/globe-16-regular";
 export { default as Grid } from "~icons/fluent/grid-16-regular";
 export { default as Info } from "~icons/fluent/info-16-regular";
 export { default as Mail } from "~icons/fluent/mail-16-regular";
 export { default as MoreHorizontal } from "~icons/fluent/more-horizontal-16-regular";
 export { default as Person } from "~icons/fluent/person-16-regular";
+export { default as Play } from "~icons/fluent/play-16-regular";
 export { default as PlugDisconnected } from "~icons/fluent/plug-disconnected-16-regular";
 /** No 16px master exists; at 16px the 24px grid also yields a 1px stroke. */
 export { default as Power } from "~icons/fluent/power-24-regular";
@@ -51,6 +55,7 @@ export { default as Search } from "~icons/fluent/search-16-regular";
 export { default as Spinner } from "~icons/fluent/spinner-ios-16-regular";
 export { default as TextBulletList } from "~icons/fluent/text-bullet-list-16-regular";
 export { default as Warning } from "~icons/fluent/warning-16-regular";
+export { default as Wrench } from "~icons/fluent/wrench-16-regular";
 
 // Empty states (rendered large)
 export { default as SearchInfo } from "~icons/fluent/search-info-20-regular";

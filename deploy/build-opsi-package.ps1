@@ -6,7 +6,9 @@
     1. Builds the Tauri release (NSIS installer), unless -SkipBuild.
     2. Copies the installer of the package.json version to CLIENT_DATA\files.
     3. Writes that version into OPSI\control and setup.opsiscript.
-    4. Optionally copies product icons from -IconSource to CLIENT_DATA\icons.
+    4. Optionally copies product icons from -IconSource to CLIENT_DATA\icons
+       and maintenance actions (actions.json + scripts) from -ActionSource to
+       CLIENT_DATA\actions.
     5. Packs deploy\opsi into dist-opsi\software-center_<version>-opsi-source.tar.gz
        (forward-slash paths, extracts cleanly on the Linux opsi server).
 
@@ -14,10 +16,13 @@
     .\deploy\build-opsi-package.ps1
 .EXAMPLE
     .\deploy\build-opsi-package.ps1 -SkipBuild -IconSource \\depot\opsi_depot\opsi-client-kiosk\files\app\ock_custom\product_icons
+.EXAMPLE
+    .\deploy\build-opsi-package.ps1 -SkipBuild -ActionSource .\deploy\opsi\actions-example
 #>
 param(
     [switch]$SkipBuild,
-    [string]$IconSource
+    [string]$IconSource,
+    [string]$ActionSource
 )
 
 $ErrorActionPreference = "Stop"
@@ -54,7 +59,8 @@ if (-not (Test-Path -LiteralPath $installer)) {
 
 $filesDir = Join-Path $opsiDir "CLIENT_DATA\files"
 $iconsDir = Join-Path $opsiDir "CLIENT_DATA\icons"
-New-Item -ItemType Directory -Force $filesDir, $iconsDir, $distDir | Out-Null
+$actionsDir = Join-Path $opsiDir "CLIENT_DATA\actions"
+New-Item -ItemType Directory -Force $filesDir, $iconsDir, $actionsDir, $distDir | Out-Null
 
 Copy-Item -LiteralPath $installer (Join-Path $filesDir "software-center-setup.exe") -Force
 Write-Host "Installer:  $(Split-Path $installer -Leaf) -> CLIENT_DATA\files\software-center-setup.exe" -ForegroundColor Green
@@ -70,6 +76,20 @@ if ($IconSource) {
     Write-Host "Icons:      $($icons.Count) Datei(en) aus $IconSource" -ForegroundColor Green
 } elseif (-not (Get-ChildItem $iconsDir -File)) {
     Write-Host "Icons:      keine (optional, siehe README -> Produkt-Icons)" -ForegroundColor Yellow
+}
+
+if ($ActionSource) {
+    if (-not (Test-Path -LiteralPath (Join-Path $ActionSource "actions.json"))) {
+        throw "actions.json fehlt in $ActionSource"
+    }
+    # replace, not merge: a script removed from the source must not linger in the package
+    Get-ChildItem -LiteralPath $actionsDir -File | Remove-Item -Force
+    $actions = Get-ChildItem -LiteralPath $ActionSource -File |
+        Where-Object { $_.Extension -in ".json", ".ps1", ".cmd", ".bat" }
+    $actions | Copy-Item -Destination $actionsDir -Force
+    Write-Host "Aktionen:   $($actions.Count) Datei(en) aus $ActionSource" -ForegroundColor Green
+} elseif (-not (Get-ChildItem $actionsDir -File)) {
+    Write-Host "Aktionen:   keine (optional, siehe README -> Wartungsaktionen)" -ForegroundColor Yellow
 }
 
 $archive = Join-Path $distDir "software-center_${version}-opsi-source.tar.gz"

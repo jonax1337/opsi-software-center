@@ -12,10 +12,12 @@ deploy/opsi/
     ├── setup.opsiscript          Installation (Fast-Exit, Icons, Branding in HKLM)
     ├── uninstall.opsiscript      Deinstallation
     ├── files/                    ← software-center-setup.exe (vom Build-Skript)
-    └── icons/                    ← <productId>.png usw. (optional)
+    ├── icons/                    ← <productId>.png usw. (optional)
+    └── actions/                  ← actions.json + Wartungsskripte (optional)
+deploy/opsi/actions-example/      Vorlage für actions/ (Teams-Cache, OneDrive-Reset)
 ```
 
-`files/` und `icons/` sind nicht eingecheckt; `deploy/build-opsi-package.ps1` befüllt sie.
+`files/`, `icons/` und `actions/` sind nicht eingecheckt; `deploy/build-opsi-package.ps1` befüllt sie.
 
 ## setup.opsiscript
 
@@ -38,6 +40,12 @@ Danach nur, wenn die installierte Version (`DisplayVersion` im Uninstall-Schlüs
    mit `isFatalError` ab,
 6. entfernt den Desktop-Link; der Startmenü-Eintrag bleibt.
 
+Immer, auch beim Fast-Exit:
+
+7. ersetzt `%ProgramFiles%\Software Center\actions\` durch `CLIENT_DATA\actions\*` (Wartungsaktionen),
+   sofern das Paket eine `actions.json` enthält. Bewusst nicht unter `%ProgramData%`: Dort darf jeder
+   Benutzer den Ordner vorab anlegen und besitzt ihn dann; unter Program Files kann er nichts anlegen.
+
 Die Soll-Version in `setup.opsiscript` und `version:` in `control` setzt das Build-Skript aus
 `package.json` — nicht von Hand pflegen.
 
@@ -52,6 +60,7 @@ Beendet laufende Instanzen, ruft den NSIS-Uninstaller still auf und entfernt
 .\deploy\build-opsi-package.ps1                       # baut Release, dann Paketquelle
 .\deploy\build-opsi-package.ps1 -SkipBuild            # vorhandenen Release-Build verwenden
 .\deploy\build-opsi-package.ps1 -IconSource <ordner>  # Icons ins Paket übernehmen
+.\deploy\build-opsi-package.ps1 -ActionSource <ordner>  # Wartungsaktionen ins Paket übernehmen
 ```
 
 Ergebnis: `dist-opsi\software-center_<version>-opsi-source.tar.gz` — auf dem Server entpacken,

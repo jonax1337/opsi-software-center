@@ -1,7 +1,7 @@
 ; ----------------------------------------------------------------------
 ; Software Center — setup
 ; Fast-Exit wenn die Soll-Version bereits installiert ist (enforce-tauglich,
-; Check gegen Uninstall-Registry-DisplayVersion). Icons und Branding werden
+; Check gegen Uninstall-Registry-DisplayVersion). Icons, Aktionen und Branding werden
 ; immer aktualisiert, damit geaenderte Produkt-Properties sofort greifen.
 ; Der Installer wird vor dem Start lokal kopiert (EXE direkt vom Depot-Share
 ; haengt in Session 0).
@@ -13,6 +13,7 @@ ScriptErrorMessages=off
 DefVar $ProductVersion$
 DefVar $InstalledVersion$
 DefVar $DataDir$
+DefVar $InstallDir$
 DefVar $LocalSetup$
 DefVar $ExitCode$
 DefVar $CompanyName$
@@ -25,6 +26,7 @@ DefStringList $FeaturedList$
 ; Wird von deploy/build-opsi-package.ps1 aus package.json gesetzt — nicht von Hand aendern.
 Set $ProductVersion$ = "0.3.0"
 Set $DataDir$ = "%CommonAppDataDir%\opsi-kiosk"
+Set $InstallDir$ = "%ProgramFiles64Dir%\Software Center"
 Set $LocalSetup$ = "%opsiTmpDir%\software-center-setup.exe"
 
 Set $CompanyName$ = GetProductProperty("company_name", "")
@@ -69,6 +71,9 @@ else
 	Files_cleanup_tmp
 endif
 
+comment "--- Wartungsaktionen immer aktualisieren (auch bei Fast-Exit) ---"
+DosInAnIcon_deploy_actions
+
 ; Recreated on every run, then locked down: only SYSTEM and Administrators may
 ; write (SIDs S-1-5-18, S-1-5-32-544), users only read (S-1-5-32-545) — by
 ; default users could create files under %ProgramData% and plant icons.
@@ -78,6 +83,15 @@ if exist "$DataDir$" rmdir /s /q "$DataDir$"
 mkdir "$DataDir$\icons"
 icacls "$DataDir$" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F *S-1-5-32-545:(OI)(CI)RX /Q
 if exist "%ScriptPath%\icons\*.*" xcopy /y /q "%ScriptPath%\icons\*.*" "$DataDir$\icons\"
+
+; Maintenance scripts the app runs ("Aktionen Ihrer IT") go next to the exe,
+; NOT to %ProgramData%: there any user may create the folder first and then own
+; it, so an ACL set afterwards cannot be trusted. Under Program Files users
+; can neither create nor change anything. Replaced on every run so scripts
+; removed from the package disappear. Optional — CLIENT_DATA\actions may be empty.
+[DosInAnIcon_deploy_actions]
+if exist "$InstallDir$\actions" rmdir /s /q "$InstallDir$\actions"
+if exist "%ScriptPath%\actions\actions.json" xcopy /y /q /i "%ScriptPath%\actions\*.*" "$InstallDir$\actions\"
 
 ; HKLM: standard users cannot write here, so the support contacts shown in
 ; the app always come from the admin.

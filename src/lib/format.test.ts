@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   describePasswordExpiry,
+  formatBytes,
   formatDateTime,
   formatUptime,
   initials,
@@ -93,5 +94,19 @@ describe("initials", () => {
 
   it("is empty when nothing is known", () => {
     expect(initials("", "")).toBe("");
+  });
+});
+
+describe("formatBytes", () => {
+  it.each([
+    [0, "0 Bytes"],
+    [1023, "1.023 Bytes"],
+    [1024, "1 KB"],
+    [1536, "1,5 KB"],
+    [5 * 1024 ** 2, "5 MB"],
+    [1.25 * 1024 ** 3, "1,3 GB"],
+    [3 * 1024 ** 5, "3.072 TB"],
+  ])("formats %d as %s", (bytes, text) => {
+    expect(formatBytes(bytes)).toBe(text);
   });
 });

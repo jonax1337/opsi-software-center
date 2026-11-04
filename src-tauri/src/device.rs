@@ -1,7 +1,9 @@
-//! Device-level sync helpers (Company-Portal-style "Sync" extras).
-//! Standard-user safe by design: gpupdate delegates the actual refresh to the
-//! Group Policy Client service (runs as SYSTEM), the reboot check only reads
-//! HKLM. Commands are hard-coded — no user input ever reaches a shell.
+//! Device-level sync and maintenance helpers (Company-Portal-style "Sync"
+//! extras, the "Wartung" buttons). Standard-user safe by design: gpupdate
+//! delegates the actual refresh to the Group Policy Client service (runs as
+//! SYSTEM), the reboot check only reads HKLM, restart and Explorer restart only
+//! touch the user's own session. Commands are hard-coded — no user input ever
+//! reaches a shell.
 
 use serde::Serialize;
 
@@ -64,23 +66,16 @@ pub async fn device_flush_dns() -> Result<bool, String> {
     }
 }
 
-/// Generate an HTML RSOP report for the current user (`gpresult /h … /scope
-/// user` — user scope avoids the elevation a computer-scope report needs) and
-/// open it in the default browser. Returns the report path.
+/// Generate an HTML RSOP report for the current user and open it in the
+/// default browser. Returns the report path.
 #[tauri::command]
 pub async fn device_gpresult_report() -> Result<String, String> {
     #[cfg(windows)]
     {
         blocking(|| {
             let path = std::env::temp_dir().join("opsi-kiosk-gpresult.html");
+            write_gpresult_report(&path)?;
             let path = path.to_string_lossy().to_string();
-            let status = windows_tool(r"System32\gpresult.exe")
-                .args(["/h", &path, "/f", "/scope", "user"])
-                .status()
-                .map_err(|e| format!("gpresult konnte nicht gestartet werden: {e}"))?;
-            if !status.success() {
-                return Err(format!("gpresult fehlgeschlagen ({status})"));
-            }
             shell_open(&path)?;
             Ok(path)
         })
@@ -90,6 +85,115 @@ pub async fn device_gpresult_report() -> Result<String, String> {
     {
         Err("nur unter Windows verfügbar".to_string())
     }
+}
+
+/// `gpresult /h … /scope user` — user scope avoids the elevation a
+/// computer-scope report needs. Overwrites `path`.
+#[cfg(windows)]
+pub fn write_gpresult_report(path: &std::path::Path) -> Result<(), String> {
+    let status = windows_tool(r"System32\gpresult.exe")
+        .arg("/h")
+        .arg(path)
+        .args(["/f", "/scope", "user"])
+        .status()
+        .map_err(|e| format!("gpresult konnte nicht gestartet werden: {e}"))?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err(format!("gpresult fehlgeschlagen ({status})"))
+    }
+}
+
+/// Restart the computer now. Without `/f`, apps with unsaved work can still
+/// veto it; the UI asks for confirmation first. Standard users hold the
+/// shutdown privilege on workstations.
+#[tauri::command]
+pub async fn device_restart() -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        blocking(|| {
+            let status = windows_tool(r"System32\shutdown.exe")
+                .args(["/r", "/t", "0"])
+                .status()
+                .map_err(|e| format!("shutdown konnte nicht gestartet werden: {e}"))?;
+            if status.success() {
+                Ok(())
+            } else {
+                Err(format!("Neustart abgelehnt ({status})"))
+            }
+        })
+        .await?
+    }
+    #[cfg(not(windows))]
+    {
+        Err("nur unter Windows verfügbar".to_string())
+    }
+}
+
+/// Restart Windows Explorer (taskbar, start menu, desktop) in the user's own
+/// session — the classic fix for a frozen taskbar.
+#[tauri::command]
+pub async fn device_restart_explorer() -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        blocking(restart_explorer).await?
+    }
+    #[cfg(not(windows))]
+    {
+        Err("nur unter Windows verfügbar".to_string())
+    }
+}
+
+#[cfg(windows)]
+fn restart_explorer() -> Result<(), String> {
+    use std::time::Duration;
+
+    /// Winlogon normally restarts the shell by itself (AutoRestartShell);
+    /// only when it has not within this window do we start it.
+    const SHELL_RESTART_POLLS: u32 = 10;
+    const POLL_INTERVAL: Duration = Duration::from_millis(500);
+
+    let session_filter = format!("SESSION eq {}", current_session_id()?);
+    windows_tool(r"System32\taskkill.exe")
+        .args(["/f", "/im", "explorer.exe", "/fi", &session_filter])
+        .output()
+        .map_err(|e| format!("taskkill konnte nicht gestartet werden: {e}"))?;
+    for _ in 0..SHELL_RESTART_POLLS {
+        std::thread::sleep(POLL_INTERVAL);
+        // a failed check counts as "not running": the taskbar must come back
+        // either way, and a second shell instance only opens a window
+        if explorer_running(&session_filter).unwrap_or(false) {
+            return Ok(());
+        }
+    }
+    windows_tool("explorer.exe")
+        .spawn()
+        .map(drop)
+        .map_err(|e| format!("Explorer konnte nicht gestartet werden: {e}"))
+}
+
+#[cfg(windows)]
+fn explorer_running(session_filter: &str) -> Result<bool, String> {
+    let output = windows_tool(r"System32\tasklist.exe")
+        .args(["/nh", "/fo", "csv", "/fi", "IMAGENAME eq explorer.exe", "/fi", session_filter])
+        .output()
+        .map_err(|e| format!("tasklist konnte nicht gestartet werden: {e}"))?;
+    // CSV rows quote the image name; the "no tasks" notice is localized and unquoted
+    Ok(String::from_utf8_lossy(&output.stdout)
+        .to_ascii_lowercase()
+        .contains("\"explorer.exe\""))
+}
+
+#[cfg(windows)]
+fn current_session_id() -> Result<u32, String> {
+    use windows_sys::Win32::System::RemoteDesktop::ProcessIdToSessionId;
+
+    let mut session = 0u32;
+    // SAFETY: `session` is a valid, writable u32 for the duration of the call.
+    if unsafe { ProcessIdToSessionId(std::process::id(), &mut session) } == 0 {
+        return Err(format!("Sitzung nicht ermittelbar: {}", std::io::Error::last_os_error()));
+    }
+    Ok(session)
 }
 
 /// True when Windows has a reboot pending (CBS, Windows Update or pending

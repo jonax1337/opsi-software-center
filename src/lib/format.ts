@@ -45,7 +45,21 @@ export function formatUptime(bootIso: string, now: Date): string | undefined {
   return days > 0 ? `${days} d ${hours % 24} h` : `${hours} h`;
 }
 
-export type PasswordTone = "muted" | "ok" | "warn" | "bad";
+const BYTE_UNITS = ["Bytes", "KB", "MB", "GB", "TB"];
+
+/** "0 Bytes", "512 Bytes", "1,5 MB" — binary steps like Explorer, one decimal from KB on. */
+export function formatBytes(bytes: number): string {
+  let value = Math.max(0, bytes);
+  let unit = 0;
+  while (value >= 1024 && unit < BYTE_UNITS.length - 1) {
+    value /= 1024;
+    unit++;
+  }
+  const digits = unit === 0 ? 0 : 1;
+  return `${value.toLocaleString(LOCALE, { maximumFractionDigits: digits })} ${BYTE_UNITS[unit]}`;
+}
+
+export type PasswordTone ="muted" | "ok" | "warn" | "bad";
 export type PasswordExpiry = { text: string; tone: PasswordTone };
 
 /** `null` expiry = the password never expires. Returns null for unparsable dates. */

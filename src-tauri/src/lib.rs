@@ -1,5 +1,8 @@
+mod actions;
+mod cleanup;
 mod config;
 mod device;
+mod diagnostics;
 mod icons;
 mod inventory;
 mod kiosk;
@@ -74,6 +77,12 @@ pub fn run() {
             device::device_pending_reboot,
             device::device_flush_dns,
             device::device_gpresult_report,
+            device::device_restart,
+            device::device_restart_explorer,
+            cleanup::device_clean_temp,
+            diagnostics::device_diagnostics_bundle,
+            actions::admin_actions_list,
+            actions::admin_action_run,
             system::get_accent_color,
             inventory::get_system_info,
         ])

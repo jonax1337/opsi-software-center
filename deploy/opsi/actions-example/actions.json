@@ -1,0 +1,16 @@
+[
+  {
+    "id": "teams-cache",
+    "label": "Teams-Cache leeren",
+    "description": "Hilft, wenn Teams hängt, nicht lädt oder alte Daten zeigt. Teams wird beendet und neu gestartet.",
+    "script": "teams-cache.ps1",
+    "confirm": "Teams wird dabei beendet. Laufende Besprechungen und Anrufe werden getrennt."
+  },
+  {
+    "id": "onedrive-reset",
+    "label": "OneDrive zurücksetzen",
+    "description": "Hilft bei Synchronisierungsproblemen. Ihre Dateien bleiben erhalten, OneDrive synchronisiert danach neu.",
+    "script": "onedrive-reset.cmd",
+    "confirm": "OneDrive wird beendet und neu eingerichtet. Das kann je nach Datenmenge eine Weile dauern."
+  }
+]

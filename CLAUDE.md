@@ -39,7 +39,15 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
   support phone/email/url + `featured_products`, the comma-joined multi-value property for the
   home "Ausgewählte Apps" banner; demo mode falls back to `mock::DEMO_FEATURED`), `open_support_contact(channel)` — the frontend only names the
   channel, the URI always comes from the config (mailto:/tel:/http(s) only).
-- **`device.rs`** — gpupdate, flushdns, gpresult report, pending-reboot check.
+- **`device.rs`** — gpupdate, flushdns, gpresult report, pending-reboot check, restart,
+  Explorer restart (own session only). **`cleanup.rs`** — %TEMP% cleanup (files untouched
+  ≥ 24 h, links skipped). **`diagnostics.rs`** — support ZIP on the (known-folder) desktop via
+  System32 `tar.exe`.
+- **`actions.rs`** — admin maintenance scripts ("Aktionen Ihrer IT"): manifest
+  `%ProgramFiles%\Software Center\actions\actions.json` (filled by the opsi package from
+  `CLIENT_DATA\actions`), run as the user (.ps1/.cmd/.bat, 10-min timeout). The UI only sends
+  the action id; the script path is always re-resolved from the manifest and must be a bare
+  file name (validated). Last stdout line = success message.
 - **`inventory.rs`** — `get_system_info` (CIM/WMI + ADSI via a hard-coded PowerShell script).
 - **`winproc.rs`** — `windows_tool()` (absolute %WINDIR% path, CREATE_NO_WINDOW),
   `shell_open()` (ShellExecuteW, never explorer.exe), `blocking()` — use these for every external process.
@@ -70,7 +78,7 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
   Apps" banner, opt-in via the `featured_products` property), `AppsView` ("Anzeigen"/"Sortieren
   nach" ComboBoxes, tiles/list toggle persisted in localStorage `apps-layout`),
   `DownloadsView` (queue / updates / installed tables with "…" menu), `DeviceView` ("Geräte": computer
-  details, maintenance, `SupportTools`), `HelpView` (IT contact from branding, account info),
+  details, maintenance, `SupportTools`, `AdminActions`), `HelpView` (IT contact from branding, account info),
   `SettingsView` (sync, autostart, connection, version). The device/account inventory is
   loaded once via `lib/system/systemInfo.svelte.ts`. Visual language follows Company Portal:
   sentence-case 20px section headings, no monospace in product UI, left-aligned pages.
