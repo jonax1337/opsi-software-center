@@ -105,6 +105,11 @@ impl KioskState {
         Ok(parsed.get("result").cloned().unwrap_or(Value::Null))
     }
 
+    /// True when the demo catalog is in use (never in a connected release build).
+    pub async fn is_mock(&self) -> bool {
+        matches!(self.backend().await, Ok(Backend::Mock))
+    }
+
     async fn backend(&self) -> Result<Backend, String> {
         let mut cached = self.backend.lock().await;
         if let Some(backend) = cached.as_ref() {

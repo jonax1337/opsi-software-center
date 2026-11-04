@@ -27,13 +27,24 @@ const ICON_FORMATS: [(&str, &str); 6] = [
 ];
 
 /// productId → data-URL for every product that has an icon file. Runs off the
-/// main thread: probing an unreachable depot share can take seconds.
+/// main thread: probing an unreachable depot share can take seconds. In demo
+/// mode, products without an icon file get a generated monogram.
 #[tauri::command]
 pub async fn kiosk_get_icons(
+    state: tauri::State<'_, crate::kiosk::KioskState>,
     product_ids: Vec<String>,
     depot_id: Option<String>,
 ) -> Result<HashMap<String, String>, String> {
-    crate::winproc::blocking(move || load_icons(product_ids, depot_id.as_deref())).await
+    let ids = product_ids.clone();
+    let mut icons = crate::winproc::blocking(move || load_icons(ids, depot_id.as_deref())).await?;
+    if state.is_mock().await {
+        for id in product_ids {
+            if let Some(icon) = crate::mock::demo_icon(&id) {
+                icons.entry(id).or_insert(icon);
+            }
+        }
+    }
+    Ok(icons)
 }
 
 fn load_icons(product_ids: Vec<String>, depot_id: Option<&str>) -> HashMap<String, String> {
