@@ -21,6 +21,7 @@ DefVar $CompanyName$
 DefVar $SupportPhone$
 DefVar $SupportEmail$
 DefVar $SupportUrl$
+DefVar $BrandColor$
 DefVar $FeaturedProducts$
 DefStringList $FeaturedList$
 
@@ -36,6 +37,7 @@ Set $CompanyName$ = GetProductProperty("company_name", "")
 Set $SupportPhone$ = GetProductProperty("support_phone", "")
 Set $SupportEmail$ = GetProductProperty("support_email", "")
 Set $SupportUrl$ = GetProductProperty("support_url", "")
+Set $BrandColor$ = GetProductProperty("brand_color", "")
 ; Multi-value property -> comma-separated REG_SZ (the app splits it again).
 Set $FeaturedList$ = GetProductPropertyList("featured_products", $FeaturedList$)
 Set $FeaturedProducts$ = composeString($FeaturedList$, ",")
@@ -112,6 +114,7 @@ set "company_name" = "$CompanyName$"
 set "support_phone" = "$SupportPhone$"
 set "support_email" = "$SupportEmail$"
 set "support_url" = "$SupportUrl$"
+set "brand_color" = "$BrandColor$"
 set "featured_products" = "$FeaturedProducts$"
 
 [Winbatch_install]

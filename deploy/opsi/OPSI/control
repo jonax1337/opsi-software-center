@@ -58,6 +58,15 @@ default: [""]
 
 [ProductProperty]
 type: unicode
+name: brand_color
+multivalue: False
+editable: True
+description: Firmenfarbe für Schaltflächen, Auswahl und Titelleiste als Hex-Wert, z. B. #E30613. Leer oder ungültig = Software-Portal-Blau.
+values: [""]
+default: [""]
+
+[ProductProperty]
+type: unicode
 name: featured_products
 multivalue: True
 editable: True

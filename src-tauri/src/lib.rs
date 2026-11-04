@@ -7,7 +7,6 @@ mod icons;
 mod inventory;
 mod kiosk;
 mod mock;
-mod system;
 mod tray;
 mod winproc;
 
@@ -83,7 +82,6 @@ pub fn run() {
             diagnostics::device_diagnostics_bundle,
             actions::admin_actions_list,
             actions::admin_action_run,
-            system::get_accent_color,
             inventory::get_system_info,
         ])
         .run(tauri::generate_context!())

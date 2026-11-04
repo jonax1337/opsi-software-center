@@ -14,7 +14,7 @@ ersetzt die Oberfläche des `opsi-client-kiosk` und nutzt dieselbe Software-on-D
   „Geräte" (Computerdetails, Selbsthilfe), „Hilfe und Support" mit Ihren IT-Kontaktdaten
 - läuft im Infobereich, startet bei der Anmeldung und meldet neue Updates als
   Windows-Benachrichtigung
-- passt sich an Windows 11 an (Mica, Akzentfarbe, Hell-/Dunkel-Modus)
+- passt sich an Windows 11 an (Mica, Hell-/Dunkel-Modus) und trägt Ihre Firmenfarbe (Property `brand_color`)
 - Tauri 2 + Svelte 5, kleiner nativer Installer
 
 Logo, App-Icons und Banner: [Soft-Stack-Branding](docs/branding/soft-stack/README.md).
@@ -25,7 +25,7 @@ Logo, App-Icons und Banner: [Soft-Stack-Branding](docs/branding/soft-stack/READM
 
 1. [Voraussetzungen](#voraussetzungen)
 2. [Installation in fünf Schritten](#installation-in-fünf-schritten)
-3. [Produkt-Properties (Firmenname, Support-Kontakt, ausgewählte Apps)](#produkt-properties)
+3. [Produkt-Properties (Firmenname, Support-Kontakt, Firmenfarbe, ausgewählte Apps)](#produkt-properties)
 4. [Produkt-Icons](#produkt-icons)
 5. [Wartungsaktionen (eigene Skripte)](#wartungsaktionen)
 6. [Den alten opsi-client-kiosk ablösen](#den-alten-opsi-client-kiosk-ablösen)
@@ -101,6 +101,7 @@ sind schnell: Ist die Version schon installiert, werden nur Icons und Properties
 | `support_phone` | Telefon-Kachel unter „Hilfe und Support" (öffnet die Telefon-App) | `+49 30 1234567` |
 | `support_email` | E-Mail-Kachel (öffnet das Mailprogramm) | `it@example.org` |
 | `support_url` | Website-Kachel, muss mit `https://` oder `http://` beginnen | `https://helpdesk.example.org` |
+| `brand_color` | Firmenfarbe für Schaltflächen, Auswahl und Titelleiste (Hex). Im dunklen Modus hellt die App sie auf, Schriftfarben wählt sie automatisch lesbar. Leer oder ungültig = Software-Portal-Blau | `#E30613` |
 | `featured_products` | Produkt-IDs für das Banner „Ausgewählte Apps“ auf der Startseite, in dieser Reihenfolge (Liste). Leer = kein Banner; IDs, die nicht im Kiosk sind, werden übersprungen | `firefox-esr`, `7zip` |
 
 Das Setup schreibt die Werte nach `HKLM\SOFTWARE\opsi-kiosk\Branding` (für Standardbenutzer nicht änderbar). Leere Properties
@@ -188,7 +189,7 @@ Regeln für die Skripte:
 
 | Bereich | Inhalt |
 |---|---|
-| **Titelleiste** | in der Windows-Akzentfarbe: Zurück, Firmenname, App-Suche, Konto-Avatar |
+| **Titelleiste** | in der Firmenfarbe (`brand_color`, sonst Software-Portal-Blau): Zurück, Firmenname, App-Suche, Konto-Avatar |
 | **Startseite** | App-Karten (Updates, verfügbare und installierte Apps), Benachrichtigungen, Karte „Ihre Geräte“, Banner „Ausgewählte Apps“ (Property `featured_products`) |
 | **Apps** | gesamter Katalog als Karten oder Tabelle; „Anzeigen“ (Alle / Installiert / Nicht installiert / Updates), „Sortieren nach“ (Name A–Z / Z–A) |
 | **App-Detailseite** | Beschreibung, Versionen, Abhängigkeiten; *Installieren*, *Aktualisieren*, *Deinstallieren* starten sofort |

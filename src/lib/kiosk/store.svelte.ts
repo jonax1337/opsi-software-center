@@ -25,6 +25,7 @@ import {
 import type { ActionRequest, KioskProduct, KioskStatus } from "./types";
 import { toast } from "$lib/ui/toast.svelte";
 import { atLeast } from "$lib/async";
+import { theme } from "$lib/theme.svelte";
 import {
   ensureAutostartDefault,
   initNotifications,
@@ -135,6 +136,7 @@ class KioskStore {
   async loadBranding() {
     try {
       this.branding = await getBranding();
+      theme.setBrandColor(this.branding.brandColor);
     } catch {
       // branding is optional — neutral texts are shown without it
     }

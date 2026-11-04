@@ -5,9 +5,10 @@ Talks to the local opsiclientd kiosk JSON-RPC endpoint (`https://localhost:4441/
 unauthenticated from localhost). UI stack copied from `E:\DEV\reclaim` (same tokens,
 primitives, conventions). Company-Portal-style: app tile grid → click → detail page
 (description + install/uninstall there, not in the grid). `--primary`/`--ring` are
-overridden at runtime with the **Windows accent color** (DWM registry via
-`get_accent_color`, Dark1 for light mode and Light2 for dark mode — see
-`theme.svelte.ts`); the static Fluent blue in app.css is only the fallback.
+overridden at runtime with the **company color** (opsi property `brand_color` → branding,
+shades derived in `lib/brandColor.ts`: the color itself in light mode, a lighter tint in dark
+mode, readable text picked by contrast — see `theme.svelte.ts`); the Soft Stack blue in
+app.css is the default. The Windows accent color is deliberately NOT used.
 Light/dark follows the OS automatically (no manual toggle). The Soft Stack identity
 (three blue app cards with a square cutout) is maintained under
 `docs/branding/soft-stack/`; native window/taskbar/installer icons are the plate-less mark
@@ -37,7 +38,7 @@ filling the tile (`svg/native-icon.svg` → `tauri icon`), the tray uses `icons/
 - **`icons.rs`** — `kiosk_get_icons`, file lookup (see Kiosk API notes).
 - **`config.rs`** — `%ProgramData%\opsi-kiosk` (`data_dir()`), `get_branding` (reads
   `HKLM\SOFTWARE\opsi-kiosk\Branding`, written by the opsi package from product properties — HKLM so standard users can't plant fake support links: company name +
-  support phone/email/url + `featured_products`, the comma-joined multi-value property for the
+  support phone/email/url + `brand_color` (validated `#rrggbb`, else empty) + `featured_products`, the comma-joined multi-value property for the
   home "Ausgewählte Apps" banner; demo mode falls back to `mock::DEMO_FEATURED`), `open_support_contact(channel)` — the frontend only names the
   channel, the URI always comes from the config (mailto:/tel:/http(s) only).
 - **`device.rs`** — gpupdate, flushdns, gpresult report, pending-reboot check, restart,
@@ -52,7 +53,7 @@ filling the tile (`svg/native-icon.svg` → `tauri icon`), the tray uses `icons/
 - **`inventory.rs`** — `get_system_info` (CIM/WMI + ADSI via a hard-coded PowerShell script).
 - **`winproc.rs`** — `windows_tool()` (absolute %WINDIR% path, CREATE_NO_WINDOW),
   `shell_open()` (ShellExecuteW, never explorer.exe), `blocking()` — use these for every external process.
-- **`system.rs`** — `get_accent_color`. **`tray.rs`** — tray icon/menu, `show_main()`; the tray
+- **`tray.rs`** — tray icon/menu, `show_main()`; the tray
   uses the freestanding brand mark `icons/tray.png` (brand rule: no carrier plate at 16 px).
 - **`lib.rs`** — plugin + command registration, close-to-tray, autostart flag.
 

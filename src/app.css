@@ -9,7 +9,7 @@
   --card-foreground: oklch(0.16 0.01 285);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.16 0.01 285);
-  /* Soft Stack brand blue #185ABD — fallback when the Windows accent is unavailable */
+  /* Soft Stack brand blue #185ABD — default when no company color (`brand_color`) is set */
   --primary: oklch(0.488 0.169 259.2);
   --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.97 0.006 285);
@@ -25,7 +25,7 @@
   --border: oklch(0.92 0.006 285);
   --input: oklch(0.92 0.006 285);
   --ring: oklch(0.488 0.169 259.2);
-  /* Company-Portal-style title bar in the accent color (Windows accent at
+  /* Company-Portal-style title bar in the accent color (company color at
      runtime, see theme.svelte.ts); always light text. */
   --titlebar: oklch(0.488 0.169 259.2);
   --titlebar-foreground: oklch(0.99 0 0);

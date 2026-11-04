@@ -44,7 +44,7 @@ Die Konzepttafel ist ein generiertes Rasterbild und enthält leicht unterschiedl
 
 Die Materialverläufe enthalten zusätzliche Helligkeitsstufen derselben Blaufamilie. [tokens.json](tokens.json) und [tokens.css](tokens.css) enthalten die Basisfarben und Typografieangaben.
 
-UI-Schrift: **Segoe UI Variable**, danach Segoe UI, system-ui, sans-serif. Überschriften verwenden 600, die Wortmarke 700. Die Wortmarke ist in Pfade umgewandelt; Schriftdateien werden nicht mitgeliefert. Die Anwendung respektiert weiterhin die Windows-Akzentfarbe. Die Produktidentität bleibt dabei blau.
+UI-Schrift: **Segoe UI Variable**, danach Segoe UI, system-ui, sans-serif. Überschriften verwenden 600, die Wortmarke 700. Die Wortmarke ist in Pfade umgewandelt; Schriftdateien werden nicht mitgeliefert. Die Anwendung übernimmt für Schaltflächen und Titelleiste die Firmenfarbe aus der opsi-Property `brand_color`; die Produktidentität (Logo, Icons) bleibt blau.
 
 ## Verwendung
 
@@ -60,8 +60,8 @@ UI-Schrift: **Segoe UI Variable**, danach Segoe UI, system-ui, sans-serif. Über
 - `app-icon.png`, `src/assets/icon.png` und `src/assets/icon.svg` sind aktualisiert.
 - `src-tauri/icons/` enthält die nativen Icons für Fenster, Taskleiste und Installer. Sie zeigen das freistehende Zeichen ohne Trägerfläche, randfüllend: Quelle ist [native-icon.svg](svg/native-icon.svg), deren viewBox eng um die Kontur des Zeichens liegt.
 - Der Infobereich (Tray) zeigt gemäß der 16-px-Regel das freistehende Zeichen ohne Trägerfläche: `src-tauri/icons/tray.png` (Kopie von `png/mark/32.png`, scharf bis 200 % Skalierung).
-- In der App steht das Zeichen (`src/assets/mark.svg`) mit dem Produktnamen oben im Navigationsbereich.
-- Die Fallback-Akzentfarbe (wenn die Windows-Akzentfarbe nicht lesbar ist) ist das Primärblau `#185ABD`.
+- Die Titelleiste der App zeigt nur den Produktnamen (kein Zeichen); sie trägt die Firmenfarbe.
+- Ohne gesetzte Firmenfarbe (`brand_color`) verwendet die App das Primärblau `#185ABD`.
 - Das Browser-Favicon verwendet das freistehende SVG-Zeichen.
 
 ## Quellen und erneuter Export

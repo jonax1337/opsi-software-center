@@ -92,23 +92,6 @@ export async function adminActionRun(id: string): Promise<string | null> {
   return invoke("admin_action_run", { id });
 }
 
-/** Shades of the user's Windows accent color (lightest→darkest), `#rrggbb`.
- *  Fields are null when the accent can't be read (e.g. browser preview). */
-export interface AccentColor {
-  base: string | null;
-  light1: string | null;
-  light2: string | null;
-  light3: string | null;
-  dark1: string | null;
-  dark2: string | null;
-  dark3: string | null;
-}
-
-/** Native Windows accent palette (HKCU). Used to override --primary/--ring. */
-export async function getAccentColor(): Promise<AccentColor> {
-  return invoke("get_accent_color");
-}
-
 export interface PcInfo {
   hostname: string;
   domain: string;
@@ -163,6 +146,8 @@ export interface Branding {
   supportUrl: string;
   /** product ids for the "Ausgewählte Apps" banner, in banner order */
   featuredProducts: string[];
+  /** company color `#rrggbb` for accents and title bar; "" = default blue */
+  brandColor: string;
 }
 
 export const NO_BRANDING: Branding = {
@@ -171,6 +156,7 @@ export const NO_BRANDING: Branding = {
   supportEmail: "",
   supportUrl: "",
   featuredProducts: [],
+  brandColor: "",
 };
 
 export async function getBranding(): Promise<Branding> {
