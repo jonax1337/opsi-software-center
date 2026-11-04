@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none" role="img" aria-labelledby="title">
+<title id="title">Software Center · Soft Stack</title>
+<defs>
+  <linearGradient id="back" x1="205" y1="95" x2="265" y2="275" gradientUnits="userSpaceOnUse"><stop stop-color="#B6E0FF"/><stop offset="1" stop-color="#9BD4FA"/></linearGradient>
+  <linearGradient id="middle" x1="251" y1="127" x2="303" y2="290" gradientUnits="userSpaceOnUse"><stop stop-color="#65C9FB"/><stop offset="1" stop-color="#43B5ED"/></linearGradient>
+  <linearGradient id="front" x1="287" y1="171" x2="364" y2="309" gradientUnits="userSpaceOnUse"><stop stop-color="#1B67D0"/><stop offset=".55" stop-color="#155DC5"/><stop offset="1" stop-color="#0B4DB1"/></linearGradient>
+  <linearGradient id="edge" x1="200" y1="110" x2="350" y2="280" gradientUnits="userSpaceOnUse"><stop stop-color="#FFFFFF" stop-opacity=".54"/><stop offset=".6" stop-color="#FFFFFF" stop-opacity=".1"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient>
+  <linearGradient id="plate" x1="80" y1="50" x2="430" y2="480" gradientUnits="userSpaceOnUse"><stop stop-color="#FFFFFF"/><stop offset=".55" stop-color="#FAFCFF"/><stop offset="1" stop-color="#E9F0FA"/></linearGradient>
+  <linearGradient id="dark-plate" x1="80" y1="50" x2="430" y2="480" gradientUnits="userSpaceOnUse"><stop stop-color="#2D405A"/><stop offset="1" stop-color="#15253E"/></linearGradient>
+  <mask id="cutout" maskUnits="userSpaceOnUse" x="130" y="50" width="300" height="270"><rect x="130" y="50" width="300" height="270" fill="white"/><g fill="black"><rect x="335" y="224.5" width="41" height="40" rx="6"/></g></mask>
+  <mask id="back-gap" maskUnits="userSpaceOnUse" x="130" y="50" width="300" height="270"><rect x="130" y="50" width="300" height="270" fill="white"/><g fill="black" stroke="black" stroke-width="7"><path d="M200 177C200 162 208 151 222 146L326 108C345 101 366 113 366 135V250C366 267 354 280 337 281L227 284C211 285 200 272 200 257Z"/><path d="M244 212C244 198 252 186 266 181L367 144C387 136 406 149 406 170V260C406 279 393 292 375 293L272 298C256 299 244 287 244 272Z"/></g></mask>
+  <mask id="middle-gap" maskUnits="userSpaceOnUse" x="130" y="50" width="300" height="270"><rect x="130" y="50" width="300" height="270" fill="white"/><path d="M244 212C244 198 252 186 266 181L367 144C387 136 406 149 406 170V260C406 279 393 292 375 293L272 298C256 299 244 287 244 272Z" fill="black" stroke="black" stroke-width="7"/></mask>
+  <filter id="plate-shadow" x="-25%" y="-25%" width="150%" height="165%" color-interpolation-filters="sRGB"><feDropShadow dx="0" dy="14" stdDeviation="13" flood-color="#234B80" flood-opacity=".21"/></filter>
+  <filter id="card-shadow" x="-35%" y="-25%" width="170%" height="165%" color-interpolation-filters="sRGB"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#164B94" flood-opacity=".16"/></filter>
+  <linearGradient id="banner" x2="1" y2="1"><stop stop-color="#FBFDFF"/><stop offset=".6" stop-color="#EDF5FF"/><stop offset="1" stop-color="#D3E9FF"/></linearGradient>
+  <linearGradient id="wave" x2=".8" y2="1"><stop stop-color="#8DD7FF" stop-opacity=".26"/><stop offset="1" stop-color="#1768D1" stop-opacity=".55"/></linearGradient>
+</defs>
+<g transform="translate(47 68) scale(1.672) translate(-156 -73)"><g mask="url(#cutout)"><path d="M156 149C156 134 164 123 178 117L284 76C302 68 323 79 323 101V237C323 254 311 265 294 266L182 268C166 268 156 258 156 243Z" fill="#242424" mask="url(#back-gap)"/><path d="M200 177C200 162 208 151 222 146L326 108C345 101 366 113 366 135V250C366 267 354 280 337 281L227 284C211 285 200 272 200 257Z" fill="#242424" mask="url(#middle-gap)"/><path d="M244 212C244 198 252 186 266 181L367 144C387 136 406 149 406 170V260C406 279 393 292 375 293L272 298C256 299 244 287 244 272Z" fill="#242424"/></g></g>
+</svg>

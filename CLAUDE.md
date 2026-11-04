@@ -8,8 +8,9 @@ primitives, conventions). Company-Portal-style: app tile grid → click → deta
 overridden at runtime with the **Windows accent color** (DWM registry via
 `get_accent_color`, hue extracted, L/C normalized — see `theme.svelte.ts`); the static
 opsi magenta (#CB1D58 = oklch(0.549 0.205 9)) in app.css is only the fallback.
-Light/dark follows the OS automatically (no manual toggle). Titlebar logo is a hexagon
-(opsi bee).
+Light/dark follows the OS automatically (no manual toggle). The Soft Stack identity
+(three blue app cards with a square cutout) is maintained under
+`docs/branding/soft-stack/`; native window/tray/installer icons use this identity.
 
 ## Stack
 
@@ -55,8 +56,8 @@ Light/dark follows the OS automatically (no manual toggle). Titlebar logo is a h
   configured perMachine so it installs in the opsi-client-agent's SYSTEM context.
   The package replaces the standard opsi-client-kiosk (uninstall via opsi, see
   deploy/opsi/README.md).
-- **GitHub**: https://github.com/jonax1337/opsi-software-center (private — tile icon
-  is a stock asset with unclear license, don't make public without replacing it).
+- **GitHub**: https://github.com/jonax1337/opsi-software-center (private).
+  The original stock app icon has been replaced by the Soft Stack identity.
 - **`src-tauri/src/tray.rs`** — system-tray icon + menu (Öffnen / Nach Updates suchen /
   Beenden). Left-click reveals the window; "Nach Updates suchen" emits the
   `tray://check-updates` event (store listens → `sync()`). `show_main()` is the shared

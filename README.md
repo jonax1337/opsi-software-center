@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/branding/soft-stack/banners/readme-banner-dark.png" />
+  <img src="docs/branding/soft-stack/banners/readme-banner.png" alt="Software Center für opsi — Alles bereit für deine Arbeit." width="1600" />
+</picture>
+
 # Software Center
 
 Leichtgewichtiger, moderner Ersatz für den opsi-client-kiosk: Endanwender installieren,
@@ -28,6 +33,8 @@ automatischer Hell-/Dunkel-Modus.
 - **Status-Footer**: Verbindungsstatus + Client-FQDN, Depot, App-Anzahl, letzte Synchronisierung
 - **Demo-Modus**: ohne erreichbaren opsiclientd startet ein Mock-Katalog (gelber Punkt im
   Footer); kompletter UI-Flow testbar, `OPSI_KIOSK_MOCK=1` erzwingt ihn
+
+Logo, App-Icons und Banner: [Soft-Stack-Branding](docs/branding/soft-stack/README.md).
 
 ## Wie es funktioniert
 
