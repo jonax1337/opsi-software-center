@@ -3,7 +3,6 @@ import {
   devicePendingReboot,
   getBranding,
   isTauri,
-  kioskGetCatalog,
   kioskGetIcons,
   kioskGetProducts,
   kioskProcessActions,
@@ -18,13 +17,12 @@ import {
   isInstalled,
   isPending,
   joinNames,
-  matchesCategory,
   selectProducts,
   sortProducts,
   type Filter,
   type Sort,
 } from "./product";
-import type { ActionRequest, Catalog, KioskProduct, KioskStatus } from "./types";
+import type { ActionRequest, KioskProduct, KioskStatus } from "./types";
 import { toast } from "$lib/ui/toast.svelte";
 import {
   ensureAutostartDefault,
@@ -62,11 +60,8 @@ class KioskStore {
   processing = $state(false);
   search = $state("");
   filter = $state<Filter>("all");
-  /** Apps page category ("" = all) and sort order */
-  category = $state("");
+  /** Apps page "Sortieren nach" */
   sort = $state<Sort>("name-asc");
-  /** optional publisher/category metadata (catalog.json) */
-  catalog = $state<Catalog>({});
   /** productId → data-URL for locally deployed icon files */
   icons = $state<Record<string, string>>({});
   syncing = $state(false);
@@ -78,8 +73,6 @@ class KioskStore {
   private notifiedPending = new Set<string>();
   /** updatable productIds already surfaced as a native notification this session */
   private notifiedUpdates = new Set<string>();
-  /** a malformed catalog.json is reported once, not on every poll */
-  private catalogErrorShown = false;
 
   /** Live opsiclientd or the demo catalog — i.e. there is something to show. */
   connected = $derived(!!this.status && (this.status.connected || this.status.mock));
@@ -93,15 +86,7 @@ class KioskStore {
   updatable = $derived(this.products.filter(hasUpdate));
   /** Updates not already queued — what "Downloads und Updates" still offers. */
   updatesToOffer = $derived(this.updatable.filter((p) => !isPending(p)));
-  filtered = $derived(
-    sortProducts(
-      selectProducts(this.products, this.filter, this.search, this.catalog).filter((p) =>
-        matchesCategory(p, this.category, this.catalog),
-      ),
-      this.sort,
-      this.catalog,
-    ),
-  );
+  filtered = $derived(sortProducts(selectProducts(this.products, this.filter, this.search), this.sort));
 
   async init() {
     if (!isTauri()) {
@@ -259,19 +244,7 @@ class KioskStore {
     } catch {
       // icons are optional — tiles fall back to a generic package symbol
     }
-    await this.loadCatalog();
     void this.refreshRebootPending();
-  }
-
-  /** The catalog is optional, but a broken file is the admin's typo — say so once. */
-  private async loadCatalog() {
-    try {
-      this.catalog = await kioskGetCatalog();
-    } catch (err) {
-      if (this.catalogErrorShown) return;
-      this.catalogErrorShown = true;
-      toast.warning("App-Katalog konnte nicht gelesen werden", String(err));
-    }
   }
 
   /** Set the action request and execute it right away. */

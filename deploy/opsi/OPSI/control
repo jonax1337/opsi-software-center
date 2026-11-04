@@ -55,3 +55,12 @@ editable: True
 description: Helpdesk-/Ticket-Website, muss mit https:// oder http:// beginnen. Leer = nicht anzeigen.
 values: [""]
 default: [""]
+
+[ProductProperty]
+type: unicode
+name: featured_products
+multivalue: True
+editable: True
+description: Produkt-IDs fuer das Banner "Ausgewaehlte Apps" auf der Startseite, in dieser Reihenfolge. Leer = kein Banner.
+values: []
+default: []

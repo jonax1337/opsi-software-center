@@ -2,12 +2,12 @@
  * Pure product rules shared by the store and the views: naming, status,
  * filtering and sorting. No Svelte state here, so everything is unit-testable.
  */
-import type { Catalog, KioskProduct } from "./types";
+import type { KioskProduct } from "./types";
 
 export type Filter = "all" | "installed" | "available" | "updates";
 
 /** Company Portal "Sortieren nach" options. */
-export type Sort = "name-asc" | "name-desc" | "publisher-asc" | "publisher-desc";
+export type Sort = "name-asc" | "name-desc";
 
 /** What the UI shows for a product, in priority order (first match wins). */
 export type ProductState = "running" | "pending" | "update" | "installed" | "available";
@@ -29,14 +29,6 @@ export function isInstalled(p: KioskProduct): boolean {
 
 export function hasUpdate(p: KioskProduct): boolean {
   return isInstalled(p) && p.updatePossible;
-}
-
-export function publisherOf(p: KioskProduct, catalog: Catalog): string {
-  return catalog[p.productId]?.publisher ?? "";
-}
-
-export function categoryOf(p: KioskProduct, catalog: Catalog): string {
-  return catalog[p.productId]?.category ?? "";
 }
 
 /** The version the user has (installed) or would get (available). */
@@ -65,18 +57,12 @@ export function matchesFilter(p: KioskProduct, filter: Filter): boolean {
   }
 }
 
-/** Like Company Portal: by name or publisher (plus id and description). */
-export function matchesSearch(p: KioskProduct, query: string, catalog: Catalog = {}): boolean {
+export function matchesSearch(p: KioskProduct, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
-  return [p.productId, p.productName, p.description, publisherOf(p, catalog)].some((field) =>
+  return [p.productId, p.productName, p.description].some((field) =>
     (field ?? "").toLowerCase().includes(q),
   );
-}
-
-/** "" = every category. */
-export function matchesCategory(p: KioskProduct, category: string, catalog: Catalog): boolean {
-  return !category || categoryOf(p, catalog) === category;
 }
 
 /** Products with an available update first, the rest alphabetical. */
@@ -90,51 +76,25 @@ export function selectProducts(
   products: KioskProduct[],
   filter: Filter,
   query: string,
-  catalog: Catalog = {},
 ): KioskProduct[] {
   return products
-    .filter((p) => matchesFilter(p, filter) && matchesSearch(p, query, catalog))
+    .filter((p) => matchesFilter(p, filter) && matchesSearch(p, query))
     .sort(compareProducts);
 }
 
 const byName = (a: KioskProduct, b: KioskProduct) =>
   displayName(a).localeCompare(displayName(b), SORT_LOCALE);
 
-/** New array in the chosen order. Products without a publisher sort last in
- *  both publisher orders; ties fall back to the name. */
-export function sortProducts(products: KioskProduct[], sort: Sort, catalog: Catalog): KioskProduct[] {
-  const byPublisher = (a: KioskProduct, b: KioskProduct) => {
-    const [pa, pb] = [publisherOf(a, catalog), publisherOf(b, catalog)];
-    if (!pa !== !pb) return pa ? -1 : 1;
-    const order = pa.localeCompare(pb, SORT_LOCALE);
-    return (sort === "publisher-desc" ? -order : order) || byName(a, b);
-  };
-  const compare: Record<Sort, (a: KioskProduct, b: KioskProduct) => number> = {
-    "name-asc": byName,
-    "name-desc": (a, b) => byName(b, a),
-    "publisher-asc": byPublisher,
-    "publisher-desc": byPublisher,
-  };
-  return [...products].sort(compare[sort]);
+/** New array in the chosen order ("Sortieren nach"). */
+export function sortProducts(products: KioskProduct[], sort: Sort): KioskProduct[] {
+  const direction = sort === "name-desc" ? -1 : 1;
+  return [...products].sort((a, b) => direction * byName(a, b));
 }
 
-export type CategorySummary = { name: string; products: KioskProduct[] };
-
-/** Categories that have at least one product, alphabetical. */
-export function categoriesOf(products: KioskProduct[], catalog: Catalog): CategorySummary[] {
-  const groups = new Map<string, KioskProduct[]>();
-  for (const p of products) {
-    const name = categoryOf(p, catalog);
-    if (name) groups.set(name, [...(groups.get(name) ?? []), p]);
-  }
-  return [...groups.entries()]
-    .map(([name, members]) => ({ name, products: members.sort(byName) }))
-    .sort((a, b) => a.name.localeCompare(b.name, SORT_LOCALE));
-}
-
-/** Company Portal "Ausgewählte Apps": flagged in the catalog, alphabetical. */
-export function featuredProducts(products: KioskProduct[], catalog: Catalog): KioskProduct[] {
-  return products.filter((p) => catalog[p.productId]?.featured).sort(byName);
+/** Company Portal "Ausgewählte Apps": the admin's list (product property
+ *  `featured_products`), in that order; ids not in the kiosk are skipped. */
+export function featuredProducts(products: KioskProduct[], featuredIds: string[]): KioskProduct[] {
+  return featuredIds.flatMap((id) => products.filter((p) => p.productId === id));
 }
 
 /** "Firefox" for one product, "Firefox, VLC" for several. */

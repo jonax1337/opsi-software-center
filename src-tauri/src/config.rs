@@ -1,9 +1,10 @@
 //! Per-organisation settings written by the opsi package, so one build serves
-//! everyone: company name and IT-support contact, shown like Company Portal's
-//! branding. The opsi setup writes the product properties to
+//! everyone: company name, IT-support contact and the featured apps, shown like
+//! Company Portal's branding. The opsi setup writes the product properties to
 //! `HKLM\SOFTWARE\opsi-kiosk\Branding` (REG_SZ `company_name`, `support_phone`,
-//! `support_email`, `support_url`) — HKLM, because standard users cannot write
-//! there, so nobody can plant a fake "IT support" link for other users.
+//! `support_email`, `support_url`, `featured_products` = comma-separated product
+//! ids) — HKLM, because standard users cannot write there, so nobody can plant a
+//! fake "IT support" link for other users.
 
 use std::path::PathBuf;
 
@@ -28,11 +29,28 @@ pub struct Branding {
     pub support_phone: String,
     pub support_email: String,
     pub support_url: String,
+    /// Product ids for the home-page "Ausgewählte Apps" banner, in banner order.
+    pub featured_products: Vec<String>,
 }
 
-/// Missing key or values = no branding; the UI then shows neutral texts.
+/// Missing key or values = no branding; the UI then shows neutral texts and no
+/// featured banner. Demo mode features a few demo products unless set.
 #[tauri::command]
-pub fn get_branding() -> Branding {
+pub async fn get_branding(state: tauri::State<'_, crate::kiosk::KioskState>) -> Result<Branding, String> {
+    let mut branding = read_branding();
+    if branding.featured_products.is_empty() && state.is_mock().await {
+        branding.featured_products = crate::mock::DEMO_FEATURED.iter().map(|id| id.to_string()).collect();
+    }
+    Ok(branding)
+}
+
+/// "7zip, firefox-esr,,vlc" → ["7zip", "firefox-esr", "vlc"] (opsi-script joins
+/// the multi-value property with commas).
+fn product_list(value: &str) -> Vec<String> {
+    value.split(',').map(str::trim).filter(|id| !id.is_empty()).map(String::from).collect()
+}
+
+fn read_branding() -> Branding {
     #[cfg(windows)]
     {
         use winreg::enums::HKEY_LOCAL_MACHINE;
@@ -47,6 +65,7 @@ pub fn get_branding() -> Branding {
             support_phone: value("support_phone"),
             support_email: value("support_email"),
             support_url: value("support_url"),
+            featured_products: product_list(&value("featured_products")),
         }
     }
     #[cfg(not(windows))]
@@ -67,7 +86,7 @@ pub enum SupportChannel {
 /// names the channel — the target always comes from the admin's config.
 #[tauri::command]
 pub fn open_support_contact(channel: SupportChannel) -> Result<(), String> {
-    let uri = support_uri(&get_branding(), channel)
+    let uri = support_uri(&read_branding(), channel)
         .ok_or("Für diesen Kontaktweg ist nichts hinterlegt.")?;
     #[cfg(windows)]
     {
@@ -129,7 +148,14 @@ mod tests {
             support_phone: "+49 (30) 123-4567".into(),
             support_email: "it@example.org".into(),
             support_url: "https://helpdesk.example.org/?q=a%20b".into(),
+            featured_products: Vec::new(),
         }
+    }
+
+    #[test]
+    fn splits_the_featured_products_list() {
+        assert_eq!(product_list(" 7zip, firefox-esr,,vlc "), ["7zip", "firefox-esr", "vlc"]);
+        assert!(product_list("").is_empty());
     }
 
     #[test]

@@ -25,12 +25,11 @@ Logo, App-Icons und Banner: [Soft-Stack-Branding](docs/branding/soft-stack/READM
 
 1. [Voraussetzungen](#voraussetzungen)
 2. [Installation in fünf Schritten](#installation-in-fünf-schritten)
-3. [Produkt-Properties (Firmenname & Support-Kontakt)](#produkt-properties)
+3. [Produkt-Properties (Firmenname, Support-Kontakt, ausgewählte Apps)](#produkt-properties)
 4. [Produkt-Icons](#produkt-icons)
-5. [App-Katalog (Herausgeber, Kategorien, ausgewählte Apps)](#app-katalog)
-6. [Den alten opsi-client-kiosk ablösen](#den-alten-opsi-client-kiosk-ablösen)
-7. [Was Anwender sehen](#was-anwender-sehen)
-8. [Fehlerbehebung](#fehlerbehebung)
+5. [Den alten opsi-client-kiosk ablösen](#den-alten-opsi-client-kiosk-ablösen)
+6. [Was Anwender sehen](#was-anwender-sehen)
+7. [Fehlerbehebung](#fehlerbehebung)
 8. [Wie es funktioniert & Sicherheit](#wie-es-funktioniert--sicherheit)
 9. [Selbst bauen & entwickeln](#selbst-bauen--entwickeln)
 
@@ -101,6 +100,7 @@ sind schnell: Ist die Version schon installiert, werden nur Icons und Properties
 | `support_phone` | Telefon-Kachel unter „Hilfe und Support" (öffnet die Telefon-App) | `+49 30 1234567` |
 | `support_email` | E-Mail-Kachel (öffnet das Mailprogramm) | `it@example.org` |
 | `support_url` | Website-Kachel, muss mit `https://` oder `http://` beginnen | `https://helpdesk.example.org` |
+| `featured_products` | Produkt-IDs für das Banner „Ausgewählte Apps“ auf der Startseite, in dieser Reihenfolge (Liste). Leer = kein Banner; IDs, die nicht im Kiosk sind, werden übersprungen | `firefox-esr`, `7zip` |
 
 Das Setup schreibt die Werte nach `HKLM\SOFTWARE\opsi-kiosk\Branding` (für Standardbenutzer nicht änderbar). Leere Properties
 werden nicht angezeigt. Nach einer Änderung das Produkt erneut auf **setup** stellen.
@@ -121,27 +121,6 @@ erscheint ein neutrales Paketsymbol. Icons ins Paket legen Sie, indem Sie sie vo
 `opsi-makepackage` nach `CLIENT_DATA/icons/` kopieren — oder beim Selbstbauen
 `-IconSource <ordner>` angeben.
 
-## App-Katalog
-
-Herausgeber, Kategorien und „Ausgewählte Apps“ kennt die opsi-Kiosk-API nicht. Sie können sie
-optional in einer `catalog.json` pflegen. Legen Sie die Datei vor `opsi-makepackage` nach
-`CLIENT_DATA/catalog.json`; das Paket kopiert sie nach `%ProgramData%\opsi-kiosk\` (nur für
-Administratoren beschreibbar). Alternativ liest das Software Center eine `catalog.json` neben der EXE.
-
-```json
-{
-  "7zip":        { "publisher": "Igor Pavlov", "category": "Werkzeuge", "featured": true },
-  "firefox-esr": { "publisher": "Mozilla",     "category": "Internet" },
-  "vlc":         { "publisher": "VideoLAN" }
-}
-```
-
-Schlüssel = Produkt-ID, jedes Feld ist optional. Damit erscheinen der Herausgeber auf Kacheln,
-in Tabellen und auf der Detailseite, die Seite **App-Kategorien**, der Kategorie-Filter und
-die Sortierung nach Herausgeber auf der Apps-Seite sowie das Banner **Ausgewählte Apps** auf der
-Startseite. Ohne Datei fehlen nur diese Angaben; eine fehlerhafte Datei meldet das Software Center
-einmalig mit Dateiname und Fehlerstelle.
-
 ## Den alten opsi-client-kiosk ablösen
 
 1. `software-center` ausrollen (siehe oben).
@@ -159,11 +138,10 @@ einmalig mit Dateiname und Fehlerstelle.
 
 | Bereich | Inhalt |
 |---|---|
-| **Titelleiste** | in der Windows-Akzentfarbe: Zurück, Firmenname, App-Suche (Name oder Herausgeber), Konto-Avatar |
-| **Startseite** | App-Karten (Updates, verfügbare und installierte Apps), Benachrichtigungen, Karte „Ihre Geräte“, Banner „Ausgewählte Apps“ |
-| **Apps** | gesamter Katalog als Karten oder Tabelle; „Anzeigen“ (Alle / Installiert / Nicht installiert / Updates), „Kategorie“, „Sortieren nach“ (Name, Herausgeber) |
-| **App-Kategorien** | eine Karte je Kategorie aus der `catalog.json` (nur sichtbar, wenn Kategorien gepflegt sind) |
-| **App-Detailseite** | Herausgeber, Beschreibung, Versionen, Kategorie, Abhängigkeiten; *Installieren*, *Aktualisieren*, *Deinstallieren* starten sofort |
+| **Titelleiste** | in der Windows-Akzentfarbe: Zurück, Firmenname, App-Suche, Konto-Avatar |
+| **Startseite** | App-Karten (Updates, verfügbare und installierte Apps), Benachrichtigungen, Karte „Ihre Geräte“, Banner „Ausgewählte Apps“ (Property `featured_products`) |
+| **Apps** | gesamter Katalog als Karten oder Tabelle; „Anzeigen“ (Alle / Installiert / Nicht installiert / Updates), „Sortieren nach“ (Name A–Z / Z–A) |
+| **App-Detailseite** | Beschreibung, Versionen, Abhängigkeiten; *Installieren*, *Aktualisieren*, *Deinstallieren* starten sofort |
 | **Downloads und Updates** | Tabellen „In der Warteschlange“ (mit Fortschrittsbalken), „Updates verfügbar“, „Installierte Apps“ (Menü „…“: Details, Neu installieren, Deinstallieren) |
 | **Geräte** | Computerdetails, Wartungsinfos, Selbsthilfe (Richtlinien aktualisieren, DNS-Cache leeren, Richtlinienbericht) |
 | **Hilfe und Support** | IT-Kontakt, Kontoinformationen |

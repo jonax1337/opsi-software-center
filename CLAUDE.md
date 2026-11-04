@@ -34,13 +34,10 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
 - **`mock.rs`** — demo catalog (exact `getKioskProductInfosForClient` shape); requests
   complete after 4 s.
 - **`icons.rs`** — `kiosk_get_icons`, file lookup (see Kiosk API notes).
-- **`catalog.rs`** — `kiosk_get_catalog`: optional admin-deployed `catalog.json`
-  (`%ProgramData%\opsi-kiosk`, then next to the exe) with publisher/category/featured per
-  productId — the kiosk API has none of these. Missing file = empty; malformed = error.
-  Demo mode falls back to `mock::demo_catalog()`.
 - **`config.rs`** — `%ProgramData%\opsi-kiosk` (`data_dir()`), `get_branding` (reads
   `HKLM\SOFTWARE\opsi-kiosk\Branding`, written by the opsi package from product properties — HKLM so standard users can't plant fake support links: company name +
-  support phone/email/url), `open_support_contact(channel)` — the frontend only names the
+  support phone/email/url + `featured_products`, the comma-joined multi-value property for the
+  home "Ausgewählte Apps" banner; demo mode falls back to `mock::DEMO_FEATURED`), `open_support_contact(channel)` — the frontend only names the
   channel, the URI always comes from the config (mailto:/tel:/http(s) only).
 - **`device.rs`** — gpupdate, flushdns, gpresult report, pending-reboot check.
 - **`inventory.rs`** — `get_system_info` (CIM/WMI + ADSI via a hard-coded PowerShell script).
@@ -63,15 +60,15 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
   offline and announces new assignments/updates.
 - **`lib/format.ts`** — German date/uptime/password-expiry formatting (pure, tested).
 - **`App.svelte`** — Company-Portal layout, no router: `view` state
-  (`home | apps | categories | downloads | devices | help | settings`) + `selectedId` for the
+  (`home | apps | downloads | devices | help | settings`) + `selectedId` for the
   detail page, plus a `history` stack for the title bar's back button. Accent-colored `TitleBar`
   on top (search box there — typing jumps to the Apps results), compact NavPane icon rail below:
-  it keeps its 52px in the layout and the hamburger opens the full pane as a light-dismiss
-  overlay (content never reflows); the selection pill glides for short moves and
-  shrinks/grows for long ones. "App-Kategorien" only appears when the catalog defines categories.
+  the hamburger widens it inline into the full pane (icons keep their position, labels fade
+  in); the selection pill glides within a group and shrinks/grows when moving between the
+  top items and the footer.
 - **`lib/views/`** — `HomeView` (app cards, notifications, "Ihre Geräte" card, "Ausgewählte
-  Apps" banner from catalog `featured`), `AppsView` ("Anzeigen"/"Kategorie"/"Sortieren nach"
-  ComboBoxes, tiles/list toggle persisted in localStorage `apps-layout`), `CategoriesView`,
+  Apps" banner, opt-in via the `featured_products` property), `AppsView` ("Anzeigen"/"Sortieren
+  nach" ComboBoxes, tiles/list toggle persisted in localStorage `apps-layout`),
   `DownloadsView` (queue / updates / installed tables with "…" menu), `DeviceView` ("Geräte": computer
   details, maintenance, `SupportTools`), `HelpView` (IT contact from branding, account info),
   `SettingsView` (sync, autostart, connection, version). The device/account inventory is
@@ -79,7 +76,7 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
   sentence-case 20px section headings, no monospace in product UI, left-aligned pages.
 - **`lib/components/`** — `CatalogGate` (loading / browser preview / "Keine Verbindung" with
   retry / demo banner around catalog views), `ProductCollection` (cards or table),
-  `ProductTile` (CP app card), `ProductTable` (CP table: Name/Version/Herausgeber/Status +
+  `ProductTile` (CP app card), `ProductTable` (CP table: Name/Version/Status +
   actions snippet), `ProductStatus` (one status line for both), `AppIcon`, `ProductDetail` +
   `ProductActions`, `TitleBar`.
 - **Actions execute immediately** (no "Vormerken"): `runAction` = setAction +
@@ -87,7 +84,7 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
   e.g. set server-side via AD-group automation) + gpupdate. Completion toasts name the
   products (never a generic "alle Aktionen").
 - **Sort**: home sections put products with available updates first, rest alphabetical (de
-  locale); the Apps page uses the "Sortieren nach" picker (`kiosk.sort`, name/publisher).
+  locale); the Apps page uses the "Sortieren nach" picker (`kiosk.sort`, name A–Z / Z–A).
 - **Tray/autostart/single-instance** — the app lives in the tray: `CloseRequested` only
   hides; quitting only via tray "Beenden". Single-instance plugin registered FIRST.
   Autostart (HKCU Run, `--minimized`) is enabled once on first run

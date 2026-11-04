@@ -35,7 +35,7 @@
 
   const available = $derived(selectProducts(kiosk.products, "available", ""));
   const installed = $derived(selectProducts(kiosk.products, "installed", ""));
-  const featured = $derived(featuredProducts(kiosk.products, kiosk.catalog));
+  const featured = $derived(featuredProducts(kiosk.products, kiosk.branding.featuredProducts));
   const hostname = $derived(systemInfo.info?.pc?.hostname ?? "Dieser Computer");
   const deviceOk = $derived(kiosk.connection === "connected" || kiosk.connection === "demo");
 </script>

@@ -23,7 +23,6 @@
     sortProducts(
       kiosk.installed.filter((p) => !isPending(p)),
       "name-asc",
-      kiosk.catalog,
     ),
   );
   const resultCount = $derived(kiosk.pending.length + kiosk.updatesToOffer.length + installed.length);

@@ -1,20 +1,17 @@
 import { describe, expect, it } from "vitest";
 import {
-  categoriesOf,
   compareProducts,
   displayName,
   displayVersion,
   featuredProducts,
   isPending,
   joinNames,
-  matchesCategory,
   matchesSearch,
   productState,
-  publisherOf,
   selectProducts,
   sortProducts,
 } from "./product";
-import type { Catalog, KioskProduct } from "./types";
+import type { KioskProduct } from "./types";
 
 function product(overrides: Partial<KioskProduct> = {}): KioskProduct {
   return {
@@ -112,11 +109,6 @@ describe("matchesSearch", () => {
     expect(matchesSearch(product(), "firefox")).toBe(false);
   });
 
-  it("matches the publisher from the catalog", () => {
-    const catalog: Catalog = { vlc: { publisher: "VideoLAN", category: "", featured: false } };
-    expect(matchesSearch(product(), "videolan", catalog)).toBe(true);
-  });
-
   it("tolerates a missing name and description", () => {
     expect(matchesSearch(product({ productName: undefined, description: undefined }), "x")).toBe(
       false,
@@ -180,56 +172,40 @@ describe("joinNames", () => {
   });
 });
 
-describe("catalog metadata", () => {
-  const entry = (publisher: string, category = "", featured = false) => ({
-    publisher,
-    category,
-    featured,
-  });
+describe("sortProducts", () => {
   const vlc = product();
   const gimp = product({ productId: "gimp", productName: "GIMP" });
   const zip = product({ productId: "7zip", productName: "7-Zip" });
-  const catalog: Catalog = {
-    vlc: entry("VideoLAN", "Multimedia", true),
-    gimp: entry("The GIMP Team", "Grafik"),
-  };
   const ids = (list: KioskProduct[]) => list.map((p) => p.productId);
-
-  it("has no publisher for products without an entry", () => {
-    expect(publisherOf(zip, catalog)).toBe("");
-    expect(publisherOf(vlc, catalog)).toBe("VideoLAN");
-  });
-
-  it("matches every product for the empty category", () => {
-    expect(matchesCategory(zip, "", catalog)).toBe(true);
-    expect(matchesCategory(vlc, "Grafik", catalog)).toBe(false);
-    expect(matchesCategory(gimp, "Grafik", catalog)).toBe(true);
-  });
 
   it.each([
     ["name-asc", ["7zip", "gimp", "vlc"]],
     ["name-desc", ["vlc", "gimp", "7zip"]],
-    ["publisher-asc", ["gimp", "vlc", "7zip"]],
-    ["publisher-desc", ["vlc", "gimp", "7zip"]],
-  ] as const)("sorts by %s, products without publisher last", (sort, expected) => {
-    expect(ids(sortProducts([vlc, zip, gimp], sort, catalog))).toEqual(expected);
+  ] as const)("sorts by %s", (sort, expected) => {
+    expect(ids(sortProducts([vlc, zip, gimp], sort))).toEqual(expected);
   });
 
-  it("does not reorder the input when sorting", () => {
+  it("does not reorder the input", () => {
     const input = [vlc, zip];
-    sortProducts(input, "name-asc", catalog);
+    sortProducts(input, "name-asc");
     expect(input).toEqual([vlc, zip]);
   });
+});
 
-  it("groups products into alphabetical categories, skipping uncategorized ones", () => {
-    const groups = categoriesOf([vlc, zip, gimp], catalog);
-    expect(groups.map((g) => [g.name, ids(g.products)])).toEqual([
-      ["Grafik", ["gimp"]],
-      ["Multimedia", ["vlc"]],
-    ]);
+describe("featuredProducts", () => {
+  const vlc = product();
+  const zip = product({ productId: "7zip", productName: "7-Zip" });
+  const ids = (list: KioskProduct[]) => list.map((p) => p.productId);
+
+  it("keeps the admin's order", () => {
+    expect(ids(featuredProducts([zip, vlc], ["vlc", "7zip"]))).toEqual(["vlc", "7zip"]);
   });
 
-  it("lists only featured products", () => {
-    expect(ids(featuredProducts([vlc, zip, gimp], catalog))).toEqual(["vlc"]);
+  it("skips ids that are not in the kiosk", () => {
+    expect(ids(featuredProducts([zip, vlc], ["firefox", "7zip"]))).toEqual(["7zip"]);
+  });
+
+  it("is empty without a list (opt-in)", () => {
+    expect(featuredProducts([zip, vlc], [])).toEqual([]);
   });
 });

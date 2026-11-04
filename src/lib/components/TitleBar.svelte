@@ -39,25 +39,26 @@
   data-tauri-drag-region
   class="flex h-12 shrink-0 select-none items-center bg-titlebar text-titlebar-foreground"
 >
+  <!-- Same 40×36 rounded box, offset and hover as the nav rail's buttons below. -->
   <button
     type="button"
     aria-label="Zurück"
     title="Zurück"
     disabled={!canGoBack}
     onclick={onback}
-    class="grid h-full w-12 shrink-0 place-items-center transition-colors hover:bg-white/10 active:bg-white/5 disabled:opacity-40 disabled:hover:bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
+    class="mx-1.5 grid h-9 w-10 shrink-0 place-items-center rounded-sm transition-colors hover:bg-white/10 active:bg-white/5 disabled:opacity-40 disabled:hover:bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white"
   >
     <ArrowLeft class="size-4" />
   </button>
 
-  <div data-tauri-drag-region class="flex min-w-0 shrink items-center gap-3 pr-4">
+  <div data-tauri-drag-region class="flex min-w-0 shrink items-center gap-2.5 pr-4">
+    <!-- The blue mark needs its white plate to stay visible on the accent bar. -->
+    <img src={brandMark} alt="" class="size-6 shrink-0 rounded-sm bg-white p-0.5" />
     <span data-tauri-drag-region class="truncate text-xs">Software Center</span>
     {#if companyName}
-      <span data-tauri-drag-region class="flex min-w-0 items-center gap-2">
-        <img src={brandMark} alt="" class="size-6 shrink-0 rounded-sm bg-white p-0.5" />
-        <span data-tauri-drag-region class="truncate text-xs font-semibold uppercase tracking-wide">
-          {companyName}
-        </span>
+      <span data-tauri-drag-region class="h-4 w-px shrink-0 bg-white/30"></span>
+      <span data-tauri-drag-region class="truncate text-xs font-semibold uppercase tracking-wide">
+        {companyName}
       </span>
     {/if}
   </div>

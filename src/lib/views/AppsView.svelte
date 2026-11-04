@@ -3,7 +3,7 @@
   import { EmptyState, PageHeader, Select } from "$lib/ui";
   import ProductCollection, { type Layout } from "$lib/components/ProductCollection.svelte";
   import { kiosk } from "$lib/kiosk/store.svelte";
-  import { categoriesOf, selectProducts, type Filter, type Sort } from "$lib/kiosk/product";
+  import { selectProducts, type Filter, type Sort } from "$lib/kiosk/product";
   import { cn } from "$lib/utils";
 
   let { onopen }: { onopen: (productId: string) => void } = $props();
@@ -19,11 +19,7 @@
   const SORTS: { value: Sort; label: string }[] = [
     { value: "name-asc", label: "Name (A–Z)" },
     { value: "name-desc", label: "Name (Z–A)" },
-    { value: "publisher-asc", label: "Herausgeber (A–Z)" },
-    { value: "publisher-desc", label: "Herausgeber (Z–A)" },
   ];
-  /** Picker value for "no category filter" (the store keeps "" for that). */
-  const ALL_CATEGORIES = "*";
 
   let layout = $state<Layout>(readLayout());
 
@@ -50,15 +46,9 @@
   const filterOptions = $derived(
     FILTERS.map((f) => ({
       value: f.value,
-      label: `${f.label} (${selectProducts(kiosk.products, f.value, kiosk.search, kiosk.catalog).length})`,
+      label: `${f.label} (${selectProducts(kiosk.products, f.value, kiosk.search).length})`,
     })),
   );
-  const categoryOptions = $derived([
-    { value: ALL_CATEGORIES, label: "Alle Kategorien" },
-    ...categoriesOf(kiosk.products, kiosk.catalog).map((c) => ({ value: c.name, label: c.name })),
-  ]);
-  const hasPublishers = $derived(Object.values(kiosk.catalog).some((e) => e.publisher));
-  const sortOptions = $derived(hasPublishers ? SORTS : SORTS.filter((s) => s.value.startsWith("name")));
 
   function setFilter(value: string) {
     const match = FILTERS.find((f) => f.value === value);
@@ -81,20 +71,9 @@
       <span class="text-muted-foreground">Anzeigen:</span>
       <Select label="Apps filtern" value={kiosk.filter} options={filterOptions} onchange={setFilter} />
     </span>
-    {#if categoryOptions.length > 1}
-      <span class="flex items-center gap-2">
-        <span class="text-muted-foreground">Kategorie:</span>
-        <Select
-          label="Nach Kategorie filtern"
-          value={kiosk.category || ALL_CATEGORIES}
-          options={categoryOptions}
-          onchange={(v) => (kiosk.category = v === ALL_CATEGORIES ? "" : v)}
-        />
-      </span>
-    {/if}
     <span class="flex items-center gap-2">
       <span class="text-muted-foreground">Sortieren nach:</span>
-      <Select label="Sortieren nach" value={kiosk.sort} options={sortOptions} onchange={setSort} />
+      <Select label="Sortieren nach" value={kiosk.sort} options={SORTS} onchange={setSort} />
     </span>
   </div>
 

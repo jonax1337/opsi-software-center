@@ -7,7 +7,6 @@
     Laptop,
     QuestionCircle,
     Settings,
-    Shapes,
   } from "$lib/ui/icons";
   import { NavPane, Toaster } from "$lib/ui";
   import type { NavItem } from "$lib/ui/NavPane.svelte";
@@ -15,24 +14,22 @@
   import ProductDetail from "$lib/components/ProductDetail.svelte";
   import TitleBar from "$lib/components/TitleBar.svelte";
   import AppsView from "$lib/views/AppsView.svelte";
-  import CategoriesView from "$lib/views/CategoriesView.svelte";
   import DeviceView from "$lib/views/DeviceView.svelte";
   import DownloadsView from "$lib/views/DownloadsView.svelte";
   import HelpView from "$lib/views/HelpView.svelte";
   import HomeView from "$lib/views/HomeView.svelte";
   import SettingsView from "$lib/views/SettingsView.svelte";
   import { kiosk } from "$lib/kiosk/store.svelte";
-  import { categoriesOf, type Filter } from "$lib/kiosk/product";
+  import type { Filter } from "$lib/kiosk/product";
   import { systemInfo } from "$lib/system/systemInfo.svelte";
 
-  type View = "home" | "apps" | "categories" | "downloads" | "devices" | "help" | "settings";
+  type View = "home" | "apps" | "downloads" | "devices" | "help" | "settings";
   /** One step of the title bar's back history. */
   type Location = { view: View; selectedId: string | null };
 
   const VIEW_LABELS: Record<View, string> = {
     home: "Startseite",
     apps: "Apps",
-    categories: "App-Kategorien",
     downloads: "Downloads und Updates",
     devices: "Geräte",
     help: "Hilfe und Support",
@@ -49,14 +46,10 @@
     selectedId ? (kiosk.products.find((p) => p.productId === selectedId) ?? null) : null,
   );
   const downloadsCount = $derived(kiosk.pending.length + kiosk.updatesToOffer.length);
-  const hasCategories = $derived(categoriesOf(kiosk.products, kiosk.catalog).length > 0);
 
   const navItems: NavItem[] = $derived([
     { value: "home", label: VIEW_LABELS.home, icon: Home },
     { value: "apps", label: VIEW_LABELS.apps, icon: Apps },
-    ...(hasCategories
-      ? [{ value: "categories", label: VIEW_LABELS.categories, icon: Shapes }]
-      : []),
     {
       value: "downloads",
       label: VIEW_LABELS.downloads,
@@ -78,7 +71,6 @@
   function navigate(next: View) {
     go({ view: next, selectedId: null });
     kiosk.search = "";
-    kiosk.category = "";
   }
 
   function back() {
@@ -92,12 +84,6 @@
   function showAll(filter: Filter) {
     navigate("apps");
     kiosk.filter = filter;
-  }
-
-  function showCategory(category: string) {
-    navigate("apps");
-    kiosk.filter = "all";
-    kiosk.category = category;
   }
 
   function openProduct(productId: string) {
@@ -157,8 +143,6 @@
                     <HomeView onopen={openProduct} onshowall={showAll} onnavigate={navigate} />
                   {:else if view === "apps"}
                     <AppsView onopen={openProduct} />
-                  {:else if view === "categories"}
-                    <CategoriesView onselect={showCategory} />
                   {:else}
                     <DownloadsView onopen={openProduct} />
                   {/if}

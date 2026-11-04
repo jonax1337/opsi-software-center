@@ -17,7 +17,6 @@ export { default as Laptop } from "~icons/fluent/laptop-20-regular";
 export { default as Navigation } from "~icons/fluent/navigation-20-regular";
 export { default as QuestionCircle } from "~icons/fluent/question-circle-20-regular";
 export { default as Settings } from "~icons/fluent/settings-20-regular";
-export { default as Shapes } from "~icons/fluent/shapes-20-regular";
 
 // Buttons, status lines, menus (rendered at 16px)
 export { default as Alert } from "~icons/fluent/alert-16-regular";

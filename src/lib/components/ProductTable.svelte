@@ -3,11 +3,11 @@
   import AppIcon from "./AppIcon.svelte";
   import ProductStatus from "./ProductStatus.svelte";
   import { kiosk } from "$lib/kiosk/store.svelte";
-  import { displayName, displayVersion, productState, publisherOf } from "$lib/kiosk/product";
+  import { displayName, displayVersion, productState } from "$lib/kiosk/product";
   import type { KioskProduct } from "$lib/kiosk/types";
 
   /** Company Portal table (Apps list view, Downloads und Updates): Name,
-   *  Version, Herausgeber, Status, optional per-row actions. The whole row
+   *  Version, Status, optional per-row actions. The whole row
    *  opens the detail page; the actions cell sits above that click target. */
   type Props = {
     products: KioskProduct[];
@@ -16,7 +16,7 @@
   };
   let { products, onopen, actions }: Props = $props();
 
-  const COLUMNS = "grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1.3fr)_3rem]";
+  const COLUMNS = "grid-cols-[minmax(0,2.4fr)_minmax(0,1fr)_minmax(0,1.3fr)_3rem]";
 </script>
 
 <div class="card-inset overflow-hidden rounded-lg bg-card text-sm" role="table">
@@ -26,7 +26,6 @@
   >
     <span role="columnheader" class="pl-11">Name</span>
     <span role="columnheader">Version</span>
-    <span role="columnheader">Herausgeber</span>
     <span role="columnheader">Status</span>
     <span role="columnheader" class="sr-only">Aktionen</span>
   </div>
@@ -47,9 +46,6 @@
         </button>
       </span>
       <span role="cell" class="truncate text-muted-foreground">{displayVersion(product)}</span>
-      <span role="cell" class="truncate text-muted-foreground">
-        {publisherOf(product, kiosk.catalog) || "—"}
-      </span>
       <span role="cell" class="min-w-0">
         {#if state === "available"}
           <span class="text-xs text-muted-foreground">Verfügbar</span>

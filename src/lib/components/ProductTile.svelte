@@ -1,19 +1,15 @@
 <script lang="ts">
   import AppIcon from "./AppIcon.svelte";
   import ProductStatus from "./ProductStatus.svelte";
-  import { kiosk } from "$lib/kiosk/store.svelte";
-  import { displayName, displayVersion, publisherOf } from "$lib/kiosk/product";
+  import { displayName, displayVersion } from "$lib/kiosk/product";
   import type { KioskProduct } from "$lib/kiosk/types";
 
   type Props = { product: KioskProduct; onclick: () => void };
   let { product, onclick }: Props = $props();
-
-  // Company Portal shows the publisher; without catalog entry the version stands in.
-  const secondary = $derived(publisherOf(product, kiosk.catalog) || displayVersion(product));
 </script>
 
 <!-- Company Portal app card: raised card, icon top-left, bold name, grey
-     publisher line and the install status below. -->
+     version line (where CP shows the publisher — opsi has none) and the status. -->
 <button
   type="button"
   {onclick}
@@ -22,7 +18,7 @@
   <AppIcon productId={product.productId} />
   <div class="w-full min-w-0">
     <div class="line-clamp-2 text-sm font-semibold leading-snug">{displayName(product)}</div>
-    <div class="truncate text-xs text-muted-foreground">{secondary}</div>
+    <div class="truncate text-xs text-muted-foreground">{displayVersion(product)}</div>
     <div class="mt-1 empty:hidden"><ProductStatus {product} /></div>
   </div>
 </button>

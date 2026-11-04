@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { ActionRequest, Catalog, KioskProduct, KioskStatus } from "./types";
+import type { ActionRequest, KioskProduct, KioskStatus } from "./types";
 
 export function isTauri(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
@@ -109,13 +109,15 @@ export async function getSystemInfo(): Promise<SystemInfo> {
   return invoke("get_system_info");
 }
 
-/** Company name + IT-support contact from the opsi package's product
- *  properties (`HKLM\SOFTWARE\opsi-kiosk\Branding`). Empty strings = not set. */
+/** Company name, IT-support contact and featured apps from the opsi package's
+ *  product properties (`HKLM\SOFTWARE\opsi-kiosk\Branding`). Empty = not set. */
 export interface Branding {
   companyName: string;
   supportPhone: string;
   supportEmail: string;
   supportUrl: string;
+  /** product ids for the "Ausgewählte Apps" banner, in banner order */
+  featuredProducts: string[];
 }
 
 export const NO_BRANDING: Branding = {
@@ -123,6 +125,7 @@ export const NO_BRANDING: Branding = {
   supportPhone: "",
   supportEmail: "",
   supportUrl: "",
+  featuredProducts: [],
 };
 
 export async function getBranding(): Promise<Branding> {
@@ -143,10 +146,4 @@ export async function kioskGetIcons(
   depotId?: string,
 ): Promise<Record<string, string>> {
   return invoke("kiosk_get_icons", { productIds, depotId: depotId ?? null });
-}
-
-/** Publisher/category/featured per product from the optional `catalog.json`;
- *  rejects with a message naming the file when it is malformed. */
-export async function kioskGetCatalog(): Promise<Catalog> {
-  return invoke("kiosk_get_catalog");
 }

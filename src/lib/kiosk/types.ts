@@ -39,14 +39,3 @@ export type KioskStatus = {
 };
 
 export type ActionRequest = "setup" | "uninstall" | "none";
-
-/** Optional per-product metadata from the admin-deployed `catalog.json`
- *  (src-tauri/src/catalog.rs) — the kiosk API has no publisher or category. */
-export type CatalogEntry = {
-  publisher: string;
-  category: string;
-  featured: boolean;
-};
-
-/** productId → entry; products without an entry are simply not listed. */
-export type Catalog = Record<string, CatalogEntry>;
