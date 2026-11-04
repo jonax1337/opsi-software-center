@@ -1,0 +1,5 @@
+# Windows scripts keep CRLF in every checkout, whatever core.autocrlf says —
+# also when the opsi package is built from a checkout on the Linux opsi server.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
