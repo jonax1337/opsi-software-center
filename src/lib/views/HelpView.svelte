@@ -52,7 +52,7 @@
   <CardContent>
     <p class="mb-4 text-sm font-medium">{branding.companyName || "IT-Abteilung"}</p>
     {#if contacts.length}
-      <div class="grid gap-2 sm:grid-cols-3">
+      <div class="grid gap-2 @xl:grid-cols-3">
         {#each contacts as c (c.channel)}
           <button
             type="button"
@@ -81,7 +81,7 @@
   <CardContent>
     {#if sys?.user}
       {@const u = sys.user}
-      <div class="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
+      <div class="grid grid-cols-2 gap-x-6 gap-y-5 @xl:grid-cols-3">
         <DataField label="Name" value={present(u.displayName)} />
         <DataField label="Benutzer" value={u.username} />
         <DataField label="E-Mail" value={present(u.mail)} />

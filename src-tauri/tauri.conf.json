@@ -14,8 +14,9 @@
       {
         "label": "main",
         "title": "Software Portal",
-        "width": 920,
-        "height": 680,
+        "width": 1080,
+        "height": 720,
+        "center": true,
         "minWidth": 720,
         "minHeight": 520,
         "visible": false,

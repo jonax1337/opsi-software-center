@@ -47,7 +47,7 @@
 <Card class="card-inset mb-8">
   <CardContent>
     {#if pc}
-      <div class="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
+      <div class="grid grid-cols-2 gap-x-6 gap-y-5 @xl:grid-cols-3">
         <DataField label="Computername" value={pc.hostname} />
         <DataField label="Domäne" value={present(pc.domain)} />
         <DataField label="Seriennummer" value={present(pc.serial)} />
@@ -81,7 +81,7 @@
         </InfoBanner>
       {/if}
       {#if diag}
-        <div class="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
+        <div class="grid grid-cols-2 gap-x-6 gap-y-5 @xl:grid-cols-3">
           <DataField label="Anmeldeserver (DC)" value={present(diag.logonServer)} />
           <DataField
             label="Letzte Richtlinienaktualisierung"

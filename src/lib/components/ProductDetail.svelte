@@ -44,7 +44,7 @@
 
 <section>
   <SectionHeading title="Informationen" />
-  <div class="grid max-w-3xl grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-3">
+  <div class="grid max-w-3xl grid-cols-2 gap-x-8 gap-y-5 @xl:grid-cols-3">
     <DataField label="Verfügbare Version" value={product.versionStr} />
     <DataField label="Installierte Version" value={product.installedVerStr || "—"} />
     <DataField label="Produkt-ID" value={product.productId} />

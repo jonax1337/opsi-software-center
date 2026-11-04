@@ -44,30 +44,33 @@
 
 {#if featured.length}
   <!-- Company Portal "Featured Apps" banner: dark gradient, copy on the left,
-       app cards on the right. -->
-  <section
-    class="featured-banner mb-8 flex flex-wrap items-center gap-6 overflow-hidden rounded-lg p-6 text-white"
-  >
-    <div class="min-w-52 max-w-64">
-      <h2 class="text-xl font-semibold">Ausgewählte Apps</h2>
-      <p class="mt-1 text-sm text-white/80">
-        Von Ihrer IT empfohlen — damit Sie direkt loslegen können.
-      </p>
-      {#if featured.length > FEATURED_COUNT}
-        <Button class="mt-4" variant="outline" size="sm" onclick={() => onshowall("all")}>
-          Alle anzeigen
-        </Button>
-      {/if}
-    </div>
-    <div class="grid min-w-0 flex-1 grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-3 text-foreground">
-      {#each featured.slice(0, FEATURED_COUNT) as product (product.productId)}
-        <ProductTile {product} onclick={() => onopen(product.productId)} />
-      {/each}
+       app cards on the right. Wide: one row of four cards that shrink rather
+       than wrap (a 3 + 1 orphan looks broken); narrow: copy on top, 2 × 2 cards. -->
+  <section class="featured-banner @container/banner mb-8 overflow-hidden rounded-lg p-6 text-white">
+    <!-- A container query styles descendants only, so the row/column switch
+         lives on this inner wrapper, not on the section itself. -->
+    <div class="flex flex-col gap-6 @3xl/banner:flex-row @3xl/banner:items-center">
+      <div class="@3xl/banner:w-56 @3xl/banner:shrink-0">
+        <h2 class="text-xl font-semibold">Ausgewählte Apps</h2>
+        <p class="mt-1 text-sm text-white/80">
+          Von Ihrer IT empfohlen — damit Sie direkt loslegen können.
+        </p>
+        {#if featured.length > FEATURED_COUNT}
+          <Button class="mt-4" variant="outline" size="sm" onclick={() => onshowall("all")}>
+            Alle anzeigen
+          </Button>
+        {/if}
+      </div>
+      <div class="grid min-w-0 flex-1 grid-cols-2 gap-3 text-foreground @3xl/banner:grid-cols-4">
+        {#each featured.slice(0, FEATURED_COUNT) as product (product.productId)}
+          <ProductTile {product} onclick={() => onopen(product.productId)} />
+        {/each}
+      </div>
     </div>
   </section>
 {/if}
 
-<div class="grid gap-x-8 gap-y-6 lg:grid-cols-[minmax(0,1fr)_17rem]">
+<div class="grid gap-x-8 gap-y-6 @4xl:grid-cols-[minmax(0,1fr)_17rem]">
   <div class="min-w-0">
     {#if kiosk.updatable.length}
       <section class="mb-8">

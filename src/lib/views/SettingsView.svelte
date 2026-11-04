@@ -80,7 +80,7 @@
       <span class="size-2 rounded-full {CONNECTION_DOT[kiosk.connection]}"></span>
       <span class="font-medium">{CONNECTION_LABEL[kiosk.connection]}</span>
     </div>
-    <div class="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
+    <div class="grid grid-cols-2 gap-x-6 gap-y-5 @xl:grid-cols-3">
       {#if kiosk.status?.clientId}
         <DataField label="opsi-Client-ID" value={kiosk.status.clientId} />
       {/if}

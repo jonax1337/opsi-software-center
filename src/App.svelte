@@ -125,8 +125,10 @@
       class="relative flex-1 min-w-0 flex flex-col rounded-tl-lg border-l border-t border-hairline bg-background/55 overflow-hidden"
     >
       <main class="flex-1 overflow-y-auto">
-        <!-- Left-aligned like a WinUI NavigationView page, not centered. -->
-        <div class="max-w-6xl px-10 pt-8 pb-12">
+        <!-- Left-aligned like a WinUI NavigationView page, not centered. A size
+             container: views switch layouts by the space they actually get
+             (window minus nav pane), not by the window width. -->
+        <div class="@container max-w-6xl px-10 pt-8 pb-12">
           {#key transitionKey}
             <div class={selected ? "animate-drill" : "animate-fade"}>
               {#if selected}
