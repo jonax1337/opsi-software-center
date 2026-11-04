@@ -4,6 +4,7 @@
   import { Card, CardContent, DataField, InfoBanner, PageHeader, SectionHeading } from "$lib/ui";
   import AdminActions from "$lib/components/AdminActions.svelte";
   import SupportTools from "$lib/components/SupportTools.svelte";
+  import SyncCard from "$lib/components/SyncCard.svelte";
   import { kiosk } from "$lib/kiosk/store.svelte";
   import { systemInfo } from "$lib/system/systemInfo.svelte";
   import {
@@ -39,6 +40,8 @@
     </p>
   </div>
 </div>
+
+<SyncCard class="mb-8" />
 
 <SectionHeading title="Gerätedetails" />
 <Card class="card-inset mb-8">

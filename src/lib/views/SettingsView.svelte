@@ -1,12 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { ArrowSync, Power, Spinner } from "$lib/ui/icons";
+  import { Power, Spinner } from "$lib/ui/icons";
   import { getVersion } from "@tauri-apps/api/app";
   import { Button, Card, CardContent, DataField, PageHeader, SectionHeading, toast } from "$lib/ui";
+  import SyncCard from "$lib/components/SyncCard.svelte";
   import { isTauri } from "$lib/kiosk/bridge";
   import { CONNECTION_LABEL, kiosk, type Connection } from "$lib/kiosk/store.svelte";
   import { autostartEnabled, setAutostart } from "$lib/system/desktop";
-  import { formatTime } from "$lib/format";
 
   let appVersion = $state<string | null>(null);
   let autostart = $state(false);
@@ -38,7 +38,6 @@
     }
   }
 
-  const busy = $derived(kiosk.syncing || kiosk.processing);
   const CONNECTION_DOT: Record<Connection, string> = {
     preview: "bg-muted-foreground",
     demo: "bg-amber-500",
@@ -49,28 +48,7 @@
 
 <PageHeader title="Einstellungen">Synchronisierung und Verhalten des Software Portals.</PageHeader>
 
-<SectionHeading title="Gerät synchronisieren" />
-<Card class="card-inset mb-6">
-  <CardContent>
-    <div class="flex flex-wrap items-center justify-between gap-4">
-      <div class="min-w-0">
-        <p class="text-sm">
-          Holt neue Zuweisungen vom Server, führt ausstehende Installationen aus und aktualisiert
-          die Gruppenrichtlinien.
-        </p>
-        <p class="mt-1 text-sm text-muted-foreground">
-          {kiosk.lastSync
-            ? `Zuletzt synchronisiert: ${formatTime(kiosk.lastSync)} Uhr`
-            : "Noch nicht synchronisiert."}
-        </p>
-      </div>
-      <Button disabled={busy || kiosk.loading || !isTauri()} onclick={() => kiosk.sync()}>
-        <ArrowSync class={busy ? "size-4 animate-spin" : "size-4"} />
-        {kiosk.processing ? "Wird ausgeführt…" : kiosk.syncing ? "Synchronisiere…" : "Synchronisieren"}
-      </Button>
-    </div>
-  </CardContent>
-</Card>
+<SyncCard class="mb-6" />
 
 <SectionHeading title="Start" />
 <Card class="card-inset mb-6">

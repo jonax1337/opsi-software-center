@@ -65,7 +65,7 @@ filling the tile (`svg/native-icon.svg` → `tauri icon`), the tray uses `icons/
 - **`lib/kiosk/bridge.ts`** — typed invoke() wrappers. No raw invoke elsewhere.
 - **`lib/kiosk/store.svelte.ts`** — single `kiosk` store: products, status, branding,
   `connected`, search/filter, pending, `retry()`; `runAction`/`updateAll`/`sync` poll every 5 s
-  until no pending requests remain (30 min timeout). 5-min background refresh reconnects when
+  until no pending requests remain (30 min timeout); `sync()` keeps its spinner ≥ 2.5 s (`atLeast` in `lib/async.ts`) because opsiclientd answers instantly. 5-min background refresh reconnects when
   offline and announces new assignments/updates.
 - **`lib/format.ts`** — German date/uptime/password-expiry formatting (pure, tested).
 - **`App.svelte`** — Company-Portal layout, no router: `view` state
@@ -78,9 +78,9 @@ filling the tile (`svg/native-icon.svg` → `tauri icon`), the tray uses `icons/
 - **`lib/views/`** — `HomeView` (app cards, notifications, "Ihre Geräte" card, "Ausgewählte
   Apps" banner, opt-in via the `featured_products` property), `AppsView` ("Anzeigen"/"Sortieren
   nach" ComboBoxes, tiles/list toggle persisted in localStorage `apps-layout`),
-  `DownloadsView` (queue / updates / installed tables with "…" menu), `DeviceView` ("Geräte": computer
+  `DownloadsView` (queue / updates / installed tables with "…" menu), `DeviceView` ("Geräte": `SyncCard`, computer
   details, maintenance, `SupportTools`, `AdminActions`), `HelpView` (IT contact from branding, account info),
-  `SettingsView` (sync, autostart, connection, version). The device/account inventory is
+  `SettingsView` (`SyncCard`, autostart, connection, version). The device/account inventory is
   loaded once via `lib/system/systemInfo.svelte.ts`. Visual language follows Company Portal:
   sentence-case 20px section headings, no monospace in product UI, left-aligned pages.
 - **`lib/components/`** — `CatalogGate` (loading / browser preview / "Keine Verbindung" with

@@ -24,6 +24,7 @@ import {
 } from "./product";
 import type { ActionRequest, KioskProduct, KioskStatus } from "./types";
 import { toast } from "$lib/ui/toast.svelte";
+import { atLeast } from "$lib/async";
 import {
   ensureAutostartDefault,
   initNotifications,
@@ -47,6 +48,9 @@ const POLL_TIMEOUT_MS = 30 * 60 * 1000;
 /** background refresh — picks up action requests set server-side (e.g. via AD
  *  groups) and reconnects when opsiclientd was not up yet at login */
 const AUTO_REFRESH_MS = 5 * 60 * 1000;
+/** The local opsiclientd answers in milliseconds; a sync that only flickers
+ *  the button does not read as "the device talked to the server". */
+const MIN_SYNC_FEEDBACK_MS = 2500;
 const RUNS_IN_BACKGROUND = "Die Ausführung läuft im Hintergrund.";
 const ASSIGNED_TO_DEVICE = "Diesem Computer wurde Software zugewiesen.";
 
@@ -192,21 +196,25 @@ class KioskStore {
     this.syncing = true;
     if (this.status?.connected) void this.gpupdate();
     try {
-      // a reconnect may already have started observing leftover requests —
-      // they still have to be executed
-      const reconnected = !this.connected;
-      if (reconnected) await this.connect();
-      await this.refresh();
-      if (this.pending.length && (!this.processing || reconnected)) {
-        await kioskProcessActions();
-        void this.pollUntilDone();
-      }
-      this.lastSync = new Date();
+      await atLeast(this.syncNow(), MIN_SYNC_FEEDBACK_MS);
     } catch (err) {
       toast.error("Synchronisierung fehlgeschlagen", String(err));
     } finally {
       this.syncing = false;
     }
+  }
+
+  private async syncNow() {
+    // a reconnect may already have started observing leftover requests —
+    // they still have to be executed
+    const reconnected = !this.connected;
+    if (reconnected) await this.connect();
+    await this.refresh();
+    if (this.pending.length && (!this.processing || reconnected)) {
+      await kioskProcessActions();
+      void this.pollUntilDone();
+    }
+    this.lastSync = new Date();
   }
 
   /** gpupdate for both scopes; only failures surface as a toast. */
