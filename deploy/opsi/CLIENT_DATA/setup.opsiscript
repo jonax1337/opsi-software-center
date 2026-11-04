@@ -26,7 +26,7 @@ DefVar $FeaturedProducts$
 DefStringList $FeaturedList$
 
 ; Wird von deploy/build-opsi-package.ps1 aus package.json gesetzt — nicht von Hand aendern.
-Set $ProductVersion$ = "0.3.0"
+Set $ProductVersion$ = "0.4.0"
 Set $DataDir$ = "%CommonAppDataDir%\opsi-kiosk"
 Set $InstallDir$ = "%ProgramFiles64Dir%\Software Portal"
 Set $LocalSetup$ = "%opsiTmpDir%\software-portal-setup.exe"

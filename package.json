@@ -1,6 +1,6 @@
 {
   "name": "opsi-kiosk",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Software Portal — lightweight opsi software-on-demand client",
   "type": "module",
   "scripts": {
