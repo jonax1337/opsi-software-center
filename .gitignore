@@ -5,3 +5,4 @@ src-tauri/target/
 .DS_Store
 deploy/opsi/CLIENT_DATA/files/
 deploy/opsi/CLIENT_DATA/icons/
+dist-opsi/

@@ -5,6 +5,10 @@
 
 use serde::Serialize;
 
+use crate::winproc::blocking;
+#[cfg(windows)]
+use crate::winproc::{shell_open, windows_tool};
+
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GpUpdateResult {
@@ -12,45 +16,31 @@ pub struct GpUpdateResult {
     pub user: bool,
 }
 
-#[cfg(windows)]
-fn run_gpupdate(target: &str, force: bool) -> bool {
-    use std::os::windows::process::CommandExt;
-    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-    let windir = std::env::var("WINDIR").unwrap_or_else(|_| r"C:\Windows".into());
-    let mut args = vec![format!("/target:{target}"), "/wait:120".to_string()];
-    if force {
-        args.push("/force".to_string());
-    }
-    std::process::Command::new(format!(r"{windir}\System32\gpupdate.exe"))
-        .args(&args)
-        .creation_flags(CREATE_NO_WINDOW)
-        .output()
-        .map(|o| o.status.success())
-        .unwrap_or(false)
-}
-
 /// Refresh group policy for both scopes. `force` re-applies *all* policies
 /// (the support-tool button); the automatic post-sync refresh passes `false`,
 /// re-applying only changed policies — fast and side-effect free.
 #[tauri::command]
 pub async fn device_gpupdate(force: bool) -> Result<GpUpdateResult, String> {
-    #[cfg(windows)]
-    {
-        tauri::async_runtime::spawn_blocking(move || GpUpdateResult {
-            computer: run_gpupdate("computer", force),
-            user: run_gpupdate("user", force),
-        })
-        .await
-        .map_err(|e| e.to_string())
+    blocking(move || GpUpdateResult {
+        computer: run_gpupdate("computer", force),
+        user: run_gpupdate("user", force),
+    })
+    .await
+}
+
+#[cfg(windows)]
+fn run_gpupdate(target: &str, force: bool) -> bool {
+    let mut command = windows_tool(r"System32\gpupdate.exe");
+    command.args([format!("/target:{target}"), "/wait:120".to_string()]);
+    if force {
+        command.arg("/force");
     }
-    #[cfg(not(windows))]
-    {
-        let _ = force;
-        Ok(GpUpdateResult {
-            computer: true,
-            user: true,
-        })
-    }
+    command.output().is_ok_and(|o| o.status.success())
+}
+
+#[cfg(not(windows))]
+fn run_gpupdate(_target: &str, _force: bool) -> bool {
+    true
 }
 
 /// Flush the DNS resolver cache (`ipconfig /flushdns`). Standard-user-safe;
@@ -59,19 +49,14 @@ pub async fn device_gpupdate(force: bool) -> Result<GpUpdateResult, String> {
 pub async fn device_flush_dns() -> Result<bool, String> {
     #[cfg(windows)]
     {
-        tauri::async_runtime::spawn_blocking(|| {
-            use std::os::windows::process::CommandExt;
-            const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-            let windir = std::env::var("WINDIR").unwrap_or_else(|_| r"C:\Windows".into());
-            std::process::Command::new(format!(r"{windir}\System32\ipconfig.exe"))
+        blocking(|| {
+            windows_tool(r"System32\ipconfig.exe")
                 .arg("/flushdns")
-                .creation_flags(CREATE_NO_WINDOW)
                 .output()
                 .map(|o| o.status.success())
-                .map_err(|e| e.to_string())
+                .map_err(|e| format!("ipconfig konnte nicht gestartet werden: {e}"))
         })
-        .await
-        .map_err(|e| e.to_string())?
+        .await?
     }
     #[cfg(not(windows))]
     {
@@ -86,30 +71,20 @@ pub async fn device_flush_dns() -> Result<bool, String> {
 pub async fn device_gpresult_report() -> Result<String, String> {
     #[cfg(windows)]
     {
-        tauri::async_runtime::spawn_blocking(|| {
-            use std::os::windows::process::CommandExt;
-            const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-            let windir = std::env::var("WINDIR").unwrap_or_else(|_| r"C:\Windows".into());
-            let mut path = std::env::temp_dir();
-            path.push("opsi-kiosk-gpresult.html");
-            let p = path.to_string_lossy().to_string();
-            let ok = std::process::Command::new(format!(r"{windir}\System32\gpresult.exe"))
-                .args(["/h", &p, "/f", "/scope", "user"])
-                .creation_flags(CREATE_NO_WINDOW)
+        blocking(|| {
+            let path = std::env::temp_dir().join("opsi-kiosk-gpresult.html");
+            let path = path.to_string_lossy().to_string();
+            let status = windows_tool(r"System32\gpresult.exe")
+                .args(["/h", &path, "/f", "/scope", "user"])
                 .status()
-                .map(|s| s.success())
-                .map_err(|e| e.to_string())?;
-            if !ok {
-                return Err("gpresult fehlgeschlagen".to_string());
+                .map_err(|e| format!("gpresult konnte nicht gestartet werden: {e}"))?;
+            if !status.success() {
+                return Err(format!("gpresult fehlgeschlagen ({status})"));
             }
-            // Open in the default browser (explorer routes .html to it).
-            let _ = std::process::Command::new(format!(r"{windir}\explorer.exe"))
-                .arg(&p)
-                .spawn();
-            Ok(p)
+            shell_open(&path)?;
+            Ok(path)
         })
-        .await
-        .map_err(|e| e.to_string())?
+        .await?
     }
     #[cfg(not(windows))]
     {
@@ -118,33 +93,25 @@ pub async fn device_gpresult_report() -> Result<String, String> {
 }
 
 /// True when Windows has a reboot pending (CBS, Windows Update or pending
-/// file renames). opsi's own reboot prompt is suppressed fleet-wide, so the
-/// footer indicator fed by this is the only place users see it.
+/// file renames). Shown in the UI because opsi's own reboot prompt is often
+/// suppressed.
 #[tauri::command]
 pub fn device_pending_reboot() -> bool {
     #[cfg(windows)]
     {
         use winreg::enums::HKEY_LOCAL_MACHINE;
         use winreg::RegKey;
+
+        const REBOOT_FLAG_KEYS: [&str; 2] = [
+            r"SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending",
+            r"SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired",
+        ];
         let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
-        if hklm
-            .open_subkey(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending")
-            .is_ok()
-        {
-            return true;
-        }
-        if hklm
-            .open_subkey(r"SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired")
-            .is_ok()
-        {
-            return true;
-        }
-        if let Ok(sm) = hklm.open_subkey(r"SYSTEM\CurrentControlSet\Control\Session Manager") {
-            if sm.get_raw_value("PendingFileRenameOperations").is_ok() {
-                return true;
-            }
-        }
-        false
+        let flag_key_exists = REBOOT_FLAG_KEYS.iter().any(|k| hklm.open_subkey(k).is_ok());
+        let renames_pending = hklm
+            .open_subkey(r"SYSTEM\CurrentControlSet\Control\Session Manager")
+            .is_ok_and(|sm| sm.get_raw_value("PendingFileRenameOperations").is_ok());
+        flag_key_exists || renames_pending
     }
     #[cfg(not(windows))]
     {

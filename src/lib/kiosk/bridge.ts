@@ -109,6 +109,33 @@ export async function getSystemInfo(): Promise<SystemInfo> {
   return invoke("get_system_info");
 }
 
+/** Company name + IT-support contact from the opsi package's product
+ *  properties (`%ProgramData%\opsi-kiosk\branding.ini`). Empty strings = not set. */
+export interface Branding {
+  companyName: string;
+  supportPhone: string;
+  supportEmail: string;
+  supportUrl: string;
+}
+
+export const NO_BRANDING: Branding = {
+  companyName: "",
+  supportPhone: "",
+  supportEmail: "",
+  supportUrl: "",
+};
+
+export async function getBranding(): Promise<Branding> {
+  return invoke("get_branding");
+}
+
+export type SupportChannel = "email" | "phone" | "website";
+
+/** Open the configured support contact (mail client, phone app, browser). */
+export async function openSupportContact(channel: SupportChannel): Promise<void> {
+  return invoke("open_support_contact", { channel });
+}
+
 /** productId → data-URL for products that have an icon file deployed locally
  *  or on the depot share */
 export async function kioskGetIcons(

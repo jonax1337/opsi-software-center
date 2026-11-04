@@ -6,31 +6,60 @@
 //! `getClientId`, `getKioskProductInfosForClient`,
 //! `setProductActionRequestWithDependencies` and `processActionRequests`.
 //!
-//! When opsiclientd is not reachable (developer machine, demo), the backend
-//! falls back to an in-memory mock catalog so the full UI flow stays testable.
-//! Force the mock with env var `OPSI_KIOSK_MOCK=1`.
+//! The in-memory demo catalog (see `mock.rs`) is used only when forced with
+//! `OPSI_KIOSK_MOCK=1`, or in debug builds when opsiclientd is unreachable.
+//! Release builds never show fake products: an unreachable opsiclientd is
+//! reported as "not connected" and retried on the next call.
 
-use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::Duration;
 
-use serde::Serialize;
-use serde_json::{Value, json};
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 use tokio::sync::Mutex;
 
-const KIOSK_URL: &str = "https://localhost:4441/kiosk";
+use crate::mock::MockCatalog;
 
-#[derive(Clone, PartialEq)]
+const KIOSK_URL: &str = "https://localhost:4441/kiosk";
+const RPC_TIMEOUT: Duration = Duration::from_secs(15);
+const MOCK_ENV_VAR: &str = "OPSI_KIOSK_MOCK";
+/// Developer machines usually have no opsiclientd — fall back to the demo
+/// catalog there, but never in a release build.
+const FALL_BACK_TO_MOCK: bool = cfg!(debug_assertions);
+
+#[derive(Clone)]
 enum Backend {
-    Unknown,
     Live { client_id: String },
     Mock,
+}
+
+/// The action requests the UI may set. Anything else is rejected while
+/// deserializing the command arguments.
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ActionRequest {
+    Setup,
+    Uninstall,
+    None,
+}
+
+impl ActionRequest {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Setup => "setup",
+            Self::Uninstall => "uninstall",
+            Self::None => "none",
+        }
+    }
 }
 
 pub struct KioskState {
     http: reqwest::Client,
     rpc_id: AtomicU64,
-    backend: Mutex<Backend>,
-    mock_products: Arc<Mutex<Vec<Value>>>,
+    /// Resolved once successfully, then cached. Failures are not cached so a
+    /// late-starting opsiclientd (autostart at login) is picked up on retry.
+    backend: Mutex<Option<Backend>>,
+    mock: MockCatalog,
 }
 
 impl KioskState {
@@ -39,12 +68,12 @@ impl KioskState {
             // opsiclientd serves a self-signed certificate on localhost
             http: reqwest::Client::builder()
                 .danger_accept_invalid_certs(true)
-                .timeout(std::time::Duration::from_secs(15))
+                .timeout(RPC_TIMEOUT)
                 .build()
                 .expect("failed to build http client"),
             rpc_id: AtomicU64::new(1),
-            backend: Mutex::new(Backend::Unknown),
-            mock_products: Arc::new(Mutex::new(mock_catalog())),
+            backend: Mutex::new(None),
+            mock: MockCatalog::new(),
         }
     }
 
@@ -60,43 +89,44 @@ impl KioskState {
             .map_err(|e| format!("opsiclientd nicht erreichbar: {e}"))?;
         let status = resp.status();
         if !status.is_success() {
-            return Err(format!("opsiclientd antwortete mit HTTP {status}"));
+            return Err(format!("opsiclientd antwortete bei {method} mit HTTP {status}"));
         }
         let parsed: Value = resp
             .json()
             .await
-            .map_err(|e| format!("Ungültige JSON-RPC-Antwort: {e}"))?;
-        if let Some(err) = parsed.get("error") {
-            if !err.is_null() {
-                let msg = err
-                    .get("message")
-                    .and_then(Value::as_str)
-                    .unwrap_or("unbekannter Fehler");
-                return Err(format!("opsi-Fehler bei {method}: {msg}"));
-            }
+            .map_err(|e| format!("Ungültige JSON-RPC-Antwort auf {method}: {e}"))?;
+        if let Some(err) = parsed.get("error").filter(|e| !e.is_null()) {
+            let msg = err
+                .get("message")
+                .and_then(Value::as_str)
+                .unwrap_or("unbekannter Fehler");
+            return Err(format!("opsi-Fehler bei {method}: {msg}"));
         }
         Ok(parsed.get("result").cloned().unwrap_or(Value::Null))
     }
 
-    /// Resolve the backend once: live opsiclientd if reachable, mock otherwise.
-    async fn resolve_backend(&self) -> Backend {
-        let mut backend = self.backend.lock().await;
-        if *backend != Backend::Unknown {
-            return backend.clone();
+    async fn backend(&self) -> Result<Backend, String> {
+        let mut cached = self.backend.lock().await;
+        if let Some(backend) = cached.as_ref() {
+            return Ok(backend.clone());
         }
-        if std::env::var("OPSI_KIOSK_MOCK").as_deref() == Ok("1") {
-            *backend = Backend::Mock;
-            return backend.clone();
+        let resolved = self.resolve_backend().await?;
+        *cached = Some(resolved.clone());
+        Ok(resolved)
+    }
+
+    async fn resolve_backend(&self) -> Result<Backend, String> {
+        if std::env::var(MOCK_ENV_VAR).as_deref() == Ok("1") {
+            return Ok(Backend::Mock);
         }
         match self.rpc("getClientId", json!([])).await {
             Ok(Value::String(client_id)) if !client_id.is_empty() => {
-                *backend = Backend::Live { client_id };
+                Ok(Backend::Live { client_id })
             }
-            _ => {
-                *backend = Backend::Mock;
-            }
+            Ok(other) => Err(format!("opsiclientd lieferte keine Client-ID: {other}")),
+            Err(_) if FALL_BACK_TO_MOCK => Ok(Backend::Mock),
+            Err(e) => Err(e),
         }
-        backend.clone()
     }
 }
 
@@ -108,55 +138,80 @@ pub struct KioskStatus {
     client_id: String,
     depot_id: String,
     version: String,
+    /// Why the connection failed; empty when connected.
+    error: String,
 }
 
-#[tauri::command]
-pub async fn kiosk_status(state: tauri::State<'_, KioskState>) -> Result<KioskStatus, String> {
-    match state.resolve_backend().await {
-        Backend::Live { client_id } => {
-            let config = state
-                .rpc("getConfigDataFromOpsiclientd", json!([true, false]))
-                .await
-                .unwrap_or(Value::Null);
-            Ok(KioskStatus {
-                connected: true,
-                mock: false,
-                client_id,
-                depot_id: config
-                    .get("depot_id")
-                    .and_then(Value::as_str)
-                    .unwrap_or_default()
-                    .to_string(),
-                version: config
-                    .get("opsiclientd_version")
-                    .and_then(Value::as_str)
-                    .unwrap_or_default()
-                    .to_string(),
-            })
+impl KioskStatus {
+    fn disconnected(error: String) -> Self {
+        Self {
+            connected: false,
+            mock: false,
+            client_id: String::new(),
+            depot_id: String::new(),
+            version: String::new(),
+            error,
         }
-        _ => Ok(KioskStatus {
+    }
+
+    fn mock() -> Self {
+        Self {
             connected: false,
             mock: true,
             client_id: "demo-client.example.org".into(),
             depot_id: "opsi-depot.example.org".into(),
             version: "mock".into(),
-        }),
+            error: String::new(),
+        }
     }
+}
+
+fn str_field(value: &Value, key: &str) -> String {
+    value
+        .get(key)
+        .and_then(Value::as_str)
+        .unwrap_or_default()
+        .to_string()
+}
+
+/// Never fails: an unreachable opsiclientd is a status, not an error, so the
+/// UI can show it and offer a retry.
+#[tauri::command]
+pub async fn kiosk_status(state: tauri::State<'_, KioskState>) -> Result<KioskStatus, String> {
+    let client_id = match state.backend().await {
+        Ok(Backend::Live { client_id }) => client_id,
+        Ok(Backend::Mock) => return Ok(KioskStatus::mock()),
+        Err(e) => return Ok(KioskStatus::disconnected(e)),
+    };
+    // depot and agent version are informational — show the client even when
+    // this call fails
+    let config = state
+        .rpc("getConfigDataFromOpsiclientd", json!([true, false]))
+        .await
+        .unwrap_or(Value::Null);
+    Ok(KioskStatus {
+        connected: true,
+        mock: false,
+        client_id,
+        depot_id: str_field(&config, "depot_id"),
+        version: str_field(&config, "opsiclientd_version"),
+        error: String::new(),
+    })
 }
 
 #[tauri::command]
 pub async fn kiosk_get_products(state: tauri::State<'_, KioskState>) -> Result<Vec<Value>, String> {
-    match state.resolve_backend().await {
+    match state.backend().await? {
         Backend::Live { client_id } => {
-            let result = state
+            match state
                 .rpc("getKioskProductInfosForClient", json!([client_id, false]))
-                .await?;
-            match result {
+                .await?
+            {
                 Value::Array(products) => Ok(products),
                 other => Err(format!("Unerwartetes Antwortformat: {other}")),
             }
         }
-        _ => Ok(state.mock_products.lock().await.clone()),
+        Backend::Mock => Ok(state.mock.products().await),
     }
 }
 
@@ -164,32 +219,20 @@ pub async fn kiosk_get_products(state: tauri::State<'_, KioskState>) -> Result<V
 pub async fn kiosk_set_action(
     state: tauri::State<'_, KioskState>,
     product_id: String,
-    action: String,
+    action: ActionRequest,
 ) -> Result<(), String> {
-    if !matches!(action.as_str(), "setup" | "uninstall" | "none") {
-        return Err(format!("Ungültige Aktion: {action}"));
-    }
-    match state.resolve_backend().await {
+    match state.backend().await? {
         Backend::Live { client_id } => {
             state
                 .rpc(
                     "setProductActionRequestWithDependencies",
-                    json!([product_id, client_id, action]),
+                    json!([product_id, client_id, action.as_str()]),
                 )
                 .await?;
-            Ok(())
         }
-        _ => {
-            let mut products = state.mock_products.lock().await;
-            if let Some(p) = products
-                .iter_mut()
-                .find(|p| p.get("productId").and_then(Value::as_str) == Some(product_id.as_str()))
-            {
-                p["actionRequest"] = json!(action);
-            }
-            Ok(())
-        }
+        Backend::Mock => state.mock.set_action(&product_id, action).await,
     }
+    Ok(())
 }
 
 /// `product_ids: None` processes ALL pending action requests (sync).
@@ -198,169 +241,13 @@ pub async fn kiosk_process_actions(
     state: tauri::State<'_, KioskState>,
     product_ids: Option<Vec<String>>,
 ) -> Result<(), String> {
-    match state.resolve_backend().await {
+    match state.backend().await? {
         Backend::Live { .. } => {
             state
                 .rpc("processActionRequests", json!([product_ids]))
                 .await?;
-            Ok(())
         }
-        _ => {
-            // Simulate the action processor: complete pending requests after a delay
-            let products = Arc::clone(&state.mock_products);
-            tauri::async_runtime::spawn(async move {
-                tokio::time::sleep(std::time::Duration::from_secs(4)).await;
-                let mut products = products.lock().await;
-                for p in products.iter_mut() {
-                    let id = p.get("productId").and_then(Value::as_str).unwrap_or("");
-                    if let Some(ids) = &product_ids {
-                        if !ids.iter().any(|i| i == id) {
-                            continue;
-                        }
-                    }
-                    match p.get("actionRequest").and_then(Value::as_str) {
-                        Some("setup") => {
-                            let version = p["versionStr"].clone();
-                            p["installationStatus"] = json!("installed");
-                            p["installedVerStr"] = version;
-                            p["updatePossible"] = json!(false);
-                            p["possibleAction"] = json!("uninstall");
-                            p["actionResult"] = json!("successful");
-                        }
-                        Some("uninstall") => {
-                            p["installationStatus"] = json!("not_installed");
-                            p["installedVerStr"] = json!("");
-                            p["possibleAction"] = json!("setup");
-                            p["actionResult"] = json!("successful");
-                        }
-                        _ => continue,
-                    }
-                    p["actionRequest"] = json!("none");
-                }
-            });
-            Ok(())
-        }
+        Backend::Mock => state.mock.process(product_ids),
     }
-}
-
-/// Product icons are not part of the kiosk JSON-RPC API — the official kiosk
-/// ships them as plain files (depot: `opsi-client-kiosk/files/app/ock_custom/
-/// product_icons`, copied to the local install dir by the kiosk's setup
-/// script). Search order:
-///   1. `OPSI_KIOSK_ICON_DIR` env var (if set)
-///   2. `%ProgramData%\opsi-kiosk\icons`
-///   3. `icons` directory next to the executable
-///   4. local opsi-client-kiosk installation (`ock_custom\product_icons`)
-///   5. depot share `\\<depot>\opsi_depot\opsi-client-kiosk\files\app\ock_custom\product_icons`
-/// File name convention: `<productId>.png|ico|jpg|jpeg|svg|webp`.
-#[tauri::command]
-pub fn kiosk_get_icons(
-    product_ids: Vec<String>,
-    depot_id: Option<String>,
-) -> std::collections::HashMap<String, String> {
-    use base64::Engine;
-
-    let mut dirs: Vec<std::path::PathBuf> = Vec::new();
-    if let Ok(dir) = std::env::var("OPSI_KIOSK_ICON_DIR") {
-        dirs.push(dir.into());
-    }
-    if let Ok(program_data) = std::env::var("ProgramData") {
-        dirs.push(std::path::Path::new(&program_data).join("opsi-kiosk").join("icons"));
-    }
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(parent) = exe.parent() {
-            dirs.push(parent.join("icons"));
-        }
-    }
-    for var in ["ProgramFiles(x86)", "ProgramFiles"] {
-        if let Ok(pf) = std::env::var(var) {
-            let pf = std::path::Path::new(&pf);
-            dirs.push(pf.join("opsi-client-kiosk").join("ock_custom").join("product_icons"));
-            dirs.push(
-                pf.join("opsi.org")
-                    .join("opsi-client-kiosk")
-                    .join("ock_custom")
-                    .join("product_icons"),
-            );
-        }
-    }
-    if let Some(depot) = depot_id.filter(|d| !d.is_empty() && !d.contains(['/', '\\'])) {
-        dirs.push(
-            format!(r"\\{depot}\opsi_depot\opsi-client-kiosk\files\app\ock_custom\product_icons")
-                .into(),
-        );
-    }
-    // skip dirs that don't exist so unreachable UNC paths only cost one probe
-    let dirs: Vec<_> = dirs.into_iter().filter(|d| d.is_dir()).collect();
-
-    let mut result = std::collections::HashMap::new();
-    for id in product_ids {
-        // product ids are validated host-side, but never build paths from
-        // anything containing separators or traversal
-        if id.contains(['/', '\\', ':']) || id.contains("..") {
-            continue;
-        }
-        'dirs: for dir in &dirs {
-            for (ext, mime) in [
-                ("png", "image/png"),
-                ("ico", "image/x-icon"),
-                ("jpg", "image/jpeg"),
-                ("jpeg", "image/jpeg"),
-                ("svg", "image/svg+xml"),
-                ("webp", "image/webp"),
-            ] {
-                let path = dir.join(format!("{id}.{ext}"));
-                if let Ok(bytes) = std::fs::read(&path) {
-                    let b64 = base64::engine::general_purpose::STANDARD.encode(bytes);
-                    result.insert(id.clone(), format!("data:{mime};base64,{b64}"));
-                    break 'dirs;
-                }
-            }
-        }
-    }
-    result
-}
-
-fn mock_product(
-    id: &str,
-    name: &str,
-    description: &str,
-    version: &str,
-    installed_version: Option<&str>,
-) -> Value {
-    let installed = installed_version.is_some();
-    json!({
-        "productId": id,
-        "productName": name,
-        "description": description,
-        "advice": "",
-        "priority": 0,
-        "productType": "LocalbootProduct",
-        "productVersion": version,
-        "packageVersion": "1",
-        "versionStr": format!("{version}-1"),
-        "installedVerStr": installed_version.map(|v| format!("{v}-1")).unwrap_or_default(),
-        "installedProdVer": installed_version.unwrap_or_default(),
-        "installedPackVer": if installed { "1" } else { "" },
-        "updatePossible": installed && installed_version != Some(version),
-        "possibleAction": if installed { "uninstall" } else { "setup" },
-        "installationStatus": if installed { "installed" } else { "not_installed" },
-        "actionRequest": "none",
-        "actionResult": "",
-        "hasSetup": true,
-        "hasUninstall": true,
-        "requirements": [],
-    })
-}
-
-fn mock_catalog() -> Vec<Value> {
-    vec![
-        mock_product("7zip", "7-Zip", "Packprogramm für ZIP-, 7z- und weitere Archivformate.", "24.09", Some("23.01")),
-        mock_product("firefox-esr", "Mozilla Firefox ESR", "Webbrowser in der Extended-Support-Variante für Unternehmen.", "128.11.0", Some("128.11.0")),
-        mock_product("vlc", "VLC Media Player", "Medienwiedergabe für nahezu alle Audio- und Videoformate.", "3.0.21", None),
-        mock_product("keepassxc", "KeePassXC", "Lokaler Passwort-Manager mit KeePass-kompatiblem Datenbankformat.", "2.7.10", None),
-        mock_product("greenshot", "Greenshot", "Screenshots erstellen, kommentieren und weitergeben.", "1.3.300", Some("1.3.300")),
-        mock_product("notepadplusplus", "Notepad++", "Texteditor mit Syntax-Hervorhebung für viele Sprachen.", "8.8.1", None),
-        mock_product("pdf24", "PDF24 Creator", "PDF-Dateien erstellen, zusammenführen und konvertieren.", "11.26.0", None),
-    ]
+    Ok(())
 }

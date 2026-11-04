@@ -7,7 +7,7 @@ type: localboot
 id: software-center
 name: Software Center
 description: Self-Service Software Center — moderner Ersatz für den opsi-client-kiosk (Software on Demand)
-advice:
+advice: Benötigt opsi-client-agent 4.3 mit aktiver Kiosk-API und konfiguriertem Software-on-Demand. Firmenname und Support-Kontakt über die Produkt-Properties setzen.
 version: 0.3.0
 priority: 0
 licenseRequired: False
@@ -19,3 +19,39 @@ alwaysScript:
 onceScript:
 customScript:
 userLoginScript:
+
+[ProductProperty]
+type: unicode
+name: company_name
+multivalue: False
+editable: True
+description: Firmenname, der im Software Center angezeigt wird (Startseite, Hilfe & Support). Leer = "Software Center".
+values: [""]
+default: [""]
+
+[ProductProperty]
+type: unicode
+name: support_phone
+multivalue: False
+editable: True
+description: Telefonnummer des IT-Supports (Hilfe & Support). Leer = nicht anzeigen.
+values: [""]
+default: [""]
+
+[ProductProperty]
+type: unicode
+name: support_email
+multivalue: False
+editable: True
+description: E-Mail-Adresse des IT-Supports (Hilfe & Support). Leer = nicht anzeigen.
+values: [""]
+default: [""]
+
+[ProductProperty]
+type: unicode
+name: support_url
+multivalue: False
+editable: True
+description: Helpdesk-/Ticket-Website, muss mit https:// oder http:// beginnen. Leer = nicht anzeigen.
+values: [""]
+default: [""]

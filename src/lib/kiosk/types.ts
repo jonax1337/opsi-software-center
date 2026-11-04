@@ -34,6 +34,8 @@ export type KioskStatus = {
   clientId: string;
   depotId: string;
   version: string;
+  /** Why opsiclientd is unreachable; empty when connected or in demo mode. */
+  error: string;
 };
 
 export type ActionRequest = "setup" | "uninstall" | "none";

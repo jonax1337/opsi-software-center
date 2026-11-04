@@ -1,8 +1,12 @@
+mod config;
 mod device;
+mod icons;
 mod inventory;
 mod kiosk;
+mod mock;
 mod system;
 mod tray;
+mod winproc;
 
 use tauri::{Manager, WindowEvent};
 
@@ -63,7 +67,9 @@ pub fn run() {
             kiosk::kiosk_get_products,
             kiosk::kiosk_set_action,
             kiosk::kiosk_process_actions,
-            kiosk::kiosk_get_icons,
+            icons::kiosk_get_icons,
+            config::get_branding,
+            config::open_support_contact,
             device::device_gpupdate,
             device::device_pending_reboot,
             device::device_flush_dns,

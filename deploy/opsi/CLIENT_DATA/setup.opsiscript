@@ -1,8 +1,10 @@
 ; ----------------------------------------------------------------------
 ; Software Center — setup
 ; Fast-Exit wenn die Soll-Version bereits installiert ist (enforce-tauglich,
-; Check gegen Uninstall-Registry-DisplayVersion). Installer wird vor dem
-; Start lokal kopiert (EXE direkt vom Depot-Share haengt in Session 0).
+; Check gegen Uninstall-Registry-DisplayVersion). Icons und Branding werden
+; immer aktualisiert, damit geaenderte Produkt-Properties sofort greifen.
+; Der Installer wird vor dem Start lokal kopiert (EXE direkt vom Depot-Share
+; haengt in Session 0).
 ; ----------------------------------------------------------------------
 [Actions]
 requiredWinstVersion >= "4.12.4"
@@ -10,18 +12,29 @@ ScriptErrorMessages=off
 
 DefVar $ProductVersion$
 DefVar $InstalledVersion$
-DefVar $InstallDir$
-DefVar $TmpDir$
+DefVar $DataDir$
+DefVar $BrandingFile$
 DefVar $LocalSetup$
 DefVar $ExitCode$
+DefVar $CompanyName$
+DefVar $SupportPhone$
+DefVar $SupportEmail$
+DefVar $SupportUrl$
 
-Set $ProductVersion$ = "0.2.0"
-Set $InstallDir$ = "%ProgramFiles64Dir%\Software Center"
-Set $TmpDir$ = "%CommonAppDataDir%\ITGG\tmp"
-Set $LocalSetup$ = $TmpDir$ + "\software-center-setup.exe"
+; Wird von deploy/build-opsi-package.ps1 aus package.json gesetzt — nicht von Hand aendern.
+Set $ProductVersion$ = "0.3.0"
+Set $DataDir$ = "%CommonAppDataDir%\opsi-kiosk"
+Set $BrandingFile$ = $DataDir$ + "\branding.ini"
+Set $LocalSetup$ = "%opsiTmpDir%\software-center-setup.exe"
 
-comment "--- Icons immer aktualisieren (auch bei Fast-Exit) ---"
-Files_install_icons
+Set $CompanyName$ = GetProductProperty("company_name", "")
+Set $SupportPhone$ = GetProductProperty("support_phone", "")
+Set $SupportEmail$ = GetProductProperty("support_email", "")
+Set $SupportUrl$ = GetProductProperty("support_url", "")
+
+comment "--- Icons und Branding immer aktualisieren (auch bei Fast-Exit) ---"
+DosInAnIcon_prepare_datadir
+Patches_branding $BrandingFile$
 
 comment "--- Fast-Exit: Soll-Version bereits installiert? ---"
 Set $InstalledVersion$ = GetRegistryStringValue64("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Software Center] DisplayVersion")
@@ -53,17 +66,27 @@ else
 	Files_cleanup_tmp
 endif
 
+; Icons are optional (CLIENT_DATA\icons may be empty) — copy only if present.
+; The stub file gives Patches_branding an existing INI to edit on a fresh client.
+[DosInAnIcon_prepare_datadir]
+if not exist "$DataDir$\icons" mkdir "$DataDir$\icons"
+if exist "%ScriptPath%\icons\*.*" xcopy /y /q "%ScriptPath%\icons\*.*" "$DataDir$\icons\"
+if not exist "$BrandingFile$" echo [branding]> "$BrandingFile$"
+
+[Patches_branding]
+set [branding] company_name=$CompanyName$
+set [branding] support_phone=$SupportPhone$
+set [branding] support_email=$SupportEmail$
+set [branding] support_url=$SupportUrl$
+
 [Winbatch_install]
 "$LocalSetup$" /S
 
 [Files_copy_setup]
-copy "%ScriptPath%\files\software-center-setup.exe" "$TmpDir$\"
+copy "%ScriptPath%\files\software-center-setup.exe" "%opsiTmpDir%\"
 
 [Files_cleanup_tmp]
 delete -f "$LocalSetup$"
-
-[Files_install_icons]
-copy "%ScriptPath%\icons\*.*" "%CommonAppDataDir%\opsi-kiosk\icons\"
 
 [LinkFolder_remove_desktop]
 set_basefolder common_desktopdirectory

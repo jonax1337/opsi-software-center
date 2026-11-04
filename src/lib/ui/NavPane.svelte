@@ -10,6 +10,7 @@
 </script>
 
 <script lang="ts">
+  import type { Snippet } from "svelte";
   import { Menu } from "@lucide/svelte";
 
   type Props = {
@@ -18,9 +19,18 @@
     value: string;
     onselect: (value: string) => void;
     open?: boolean;
+    /** Rendered below the pane toggle (e.g. a search box); receives `open`. */
+    header?: Snippet<[boolean]>;
   };
 
-  let { items, footer = [], value, onselect, open = $bindable(true) }: Props = $props();
+  let {
+    items,
+    footer = [],
+    value,
+    onselect,
+    open = $bindable(true),
+    header,
+  }: Props = $props();
 
   // Refs to each nav button so the single selection indicator can travel to the
   // active one (WinUI: one pill that stretches in the direction of travel and
@@ -86,6 +96,10 @@
   >
     <Menu class="size-5" />
   </button>
+
+  {#if header}
+    <div class="mx-2 mb-2">{@render header(open)}</div>
+  {/if}
 
   {#snippet navButton(item: NavItem)}
     {@const selected = item.value === value}
