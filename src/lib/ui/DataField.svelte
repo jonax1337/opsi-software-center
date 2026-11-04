@@ -14,10 +14,10 @@
 </script>
 
 <div class={klass}>
-  <div class="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+  <div class="text-xs text-muted-foreground">
     {label}
   </div>
-  <div class={cn("mt-1", mono ? "font-mono text-sm tabular-nums break-all" : "text-sm")}>
+  <div class={cn("mt-0.5", mono ? "font-mono text-sm tabular-nums break-all" : "text-sm")}>
     {#if children}{@render children()}{:else}{value ?? "—"}{/if}
   </div>
 </div>

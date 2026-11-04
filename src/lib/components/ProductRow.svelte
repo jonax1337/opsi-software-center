@@ -2,13 +2,11 @@
   import { ChevronRight } from "@lucide/svelte";
   import AppIcon from "./AppIcon.svelte";
   import ProductStatus from "./ProductStatus.svelte";
-  import { displayName, isInstalled } from "$lib/kiosk/product";
+  import { displayName, displayVersion } from "$lib/kiosk/product";
   import type { KioskProduct } from "$lib/kiosk/types";
 
   type Props = { product: KioskProduct; onclick: () => void };
   let { product, onclick }: Props = $props();
-
-  const version = $derived(isInstalled(product) ? product.installedVerStr : product.versionStr);
 </script>
 
 <button
@@ -18,8 +16,8 @@
 >
   <AppIcon productId={product.productId} size="sm" />
   <div class="min-w-0 flex-1">
-    <div class="truncate text-sm font-medium">{displayName(product)}</div>
-    <div class="truncate font-mono text-xs tabular-nums text-muted-foreground">{version}</div>
+    <div class="truncate text-sm">{displayName(product)}</div>
+    <div class="truncate text-xs text-muted-foreground">{displayVersion(product)}</div>
   </div>
   <div class="hidden w-40 shrink-0 sm:block">
     <ProductStatus {product} />

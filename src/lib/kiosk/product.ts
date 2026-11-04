@@ -28,6 +28,11 @@ export function hasUpdate(p: KioskProduct): boolean {
   return isInstalled(p) && p.updatePossible;
 }
 
+/** The version the user has (installed) or would get (available). */
+export function displayVersion(p: KioskProduct): string {
+  return isInstalled(p) ? p.installedVerStr : p.versionStr;
+}
+
 /** `processing` = the store's poll loop is running, i.e. opsi works on requests. */
 export function productState(p: KioskProduct, processing: boolean): ProductState {
   if (isPending(p)) return processing ? "running" : "pending";

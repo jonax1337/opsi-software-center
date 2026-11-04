@@ -10,7 +10,7 @@
   const upToDate = $derived(!kiosk.pending.length && !kiosk.updatesToOffer.length);
 </script>
 
-<PageHeader title="Downloads & Updates">
+<PageHeader title="Downloads und Updates">
   Laufende Installationen und verfügbare Aktualisierungen.
   {#snippet actions()}
     <Button variant="outline" size="sm" disabled={busy} onclick={() => kiosk.sync()}>

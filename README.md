@@ -10,8 +10,8 @@ Software mit [opsi](https://www.opsi.org) verteilen. Anwender installieren, aktu
 entfernen freigegebene Software selbst — ohne Admin-Rechte und ohne Ticket. Das Software Center
 ersetzt die Oberfläche des `opsi-client-kiosk` und nutzt dieselbe Software-on-Demand-Mechanik.
 
-- Startseite, App-Katalog (Kacheln oder Liste), Detailseite pro App, „Downloads & Updates",
-  „Hilfe & Support" mit Ihren IT-Kontaktdaten
+- Startseite, App-Katalog (Kacheln oder Liste), Detailseite pro App, „Downloads und Updates",
+  „Geräte" (Computerdetails, Selbsthilfe), „Hilfe und Support" mit Ihren IT-Kontaktdaten
 - läuft im Infobereich, startet bei der Anmeldung und meldet neue Updates als
   Windows-Benachrichtigung
 - passt sich an Windows 11 an (Mica, Akzentfarbe, Hell-/Dunkel-Modus)
@@ -96,8 +96,8 @@ sind schnell: Ist die Version schon installiert, werden nur Icons und Properties
 
 | Property | Wirkung | Beispiel |
 |---|---|---|
-| `company_name` | Überschrift der Startseite und Absender unter „Hilfe & Support" | `Beispiel GmbH` |
-| `support_phone` | Telefon-Kachel unter „Hilfe & Support" (öffnet die Telefon-App) | `+49 30 1234567` |
+| `company_name` | Überschrift der Startseite und Absender unter „Hilfe und Support" | `Beispiel GmbH` |
+| `support_phone` | Telefon-Kachel unter „Hilfe und Support" (öffnet die Telefon-App) | `+49 30 1234567` |
 | `support_email` | E-Mail-Kachel (öffnet das Mailprogramm) | `it@example.org` |
 | `support_url` | Website-Kachel, muss mit `https://` oder `http://` beginnen | `https://helpdesk.example.org` |
 
@@ -138,10 +138,11 @@ erscheint ein neutrales Paketsymbol. Icons ins Paket legen Sie, indem Sie sie vo
 | Bereich | Inhalt |
 |---|---|
 | **Startseite** | Firmenname, verfügbare Updates („Alle aktualisieren"), verfügbare und installierte Apps |
-| **Apps** | gesamter Katalog als Kacheln oder Liste, Filter (Alle / Installiert / Nicht installiert / Updates); Suche oben in der Navigation |
+| **Apps** | gesamter Katalog als Kacheln oder Liste, Auswahl „Anzeigen" (Alle / Installiert / Nicht installiert / Updates); Suche oben in der Navigation |
 | **App-Detailseite** | Beschreibung, Versionen, Abhängigkeiten; *Installieren*, *Aktualisieren*, *Deinstallieren* starten sofort |
-| **Downloads & Updates** | laufende und ausstehende Aktionen, verfügbare Updates, „Nach Updates suchen" |
-| **Hilfe & Support** | IT-Kontakt, Computer- und Kontoinformationen, Selbsthilfe (Richtlinien aktualisieren, DNS-Cache leeren, Richtlinienbericht) |
+| **Downloads und Updates** | laufende und ausstehende Aktionen, verfügbare Updates, „Nach Updates suchen" |
+| **Geräte** | Computerdetails, Wartungsinfos, Selbsthilfe (Richtlinien aktualisieren, DNS-Cache leeren, Richtlinienbericht) |
+| **Hilfe und Support** | IT-Kontakt, Kontoinformationen |
 | **Einstellungen** | Gerät synchronisieren, Autostart ein/aus, Verbindungsstatus, Version |
 
 Das Fenster schließt in den Infobereich; beendet wird über das Tray-Menü. Alle 5 Minuten

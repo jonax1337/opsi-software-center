@@ -1,6 +1,6 @@
 <script lang="ts">
   import { LayoutGrid, List, SearchX } from "@lucide/svelte";
-  import { EmptyState, FilterChip, PageHeader } from "$lib/ui";
+  import { EmptyState, PageHeader, Select } from "$lib/ui";
   import ProductCollection, { type Layout } from "$lib/components/ProductCollection.svelte";
   import { kiosk } from "$lib/kiosk/store.svelte";
   import { selectProducts, type Filter } from "$lib/kiosk/product";
@@ -10,10 +10,10 @@
 
   const LAYOUT_KEY = "apps-layout";
   const FILTERS: { value: Filter; label: string }[] = [
-    { value: "all", label: "Alle" },
-    { value: "installed", label: "Installiert" },
-    { value: "available", label: "Nicht installiert" },
-    { value: "updates", label: "Updates" },
+    { value: "all", label: "Alle Apps" },
+    { value: "installed", label: "Installierte Apps" },
+    { value: "available", label: "Nicht installierte Apps" },
+    { value: "updates", label: "Updates verfügbar" },
   ];
 
   let layout = $state<Layout>(readLayout());
@@ -38,7 +38,17 @@
 
   const query = $derived(kiosk.search.trim());
   const title = $derived(query ? `Ergebnisse für „${query}"` : "Apps");
-  const count = (filter: Filter) => selectProducts(kiosk.products, filter, kiosk.search).length;
+  const filterOptions = $derived(
+    FILTERS.map((f) => ({
+      value: f.value,
+      label: `${f.label} (${selectProducts(kiosk.products, f.value, kiosk.search).length})`,
+    })),
+  );
+
+  function setFilter(value: string) {
+    const match = FILTERS.find((f) => f.value === value);
+    if (match) kiosk.filter = match.value;
+  }
 </script>
 
 <PageHeader {title}>
@@ -46,16 +56,14 @@
 </PageHeader>
 
 <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
-  <div class="flex flex-wrap gap-2">
-    {#each FILTERS as f (f.value)}
-      <FilterChip
-        selected={kiosk.filter === f.value}
-        count={count(f.value)}
-        onclick={() => (kiosk.filter = f.value)}
-      >
-        {f.label}
-      </FilterChip>
-    {/each}
+  <div class="flex items-center gap-2 text-sm">
+    <span class="text-muted-foreground">Anzeigen:</span>
+    <Select
+      label="Apps filtern"
+      value={kiosk.filter}
+      options={filterOptions}
+      onchange={setFilter}
+    />
   </div>
 
   {#snippet layoutButton(value: Layout, label: string, Icon: typeof List)}

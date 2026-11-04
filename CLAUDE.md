@@ -59,12 +59,15 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
   offline and announces new assignments/updates.
 - **`lib/format.ts`** — German date/uptime/password-expiry formatting (pure, tested).
 - **`App.svelte`** — Company-Portal layout, no router: `view` state
-  (`home | apps | downloads | help | settings`) + `selectedId` for the detail page. NavPane
+  (`home | apps | downloads | devices | help | settings`) + `selectedId` for the detail page. NavPane
   with the search box in its header (typing jumps to the Apps results).
 - **`lib/views/`** — `HomeView` (company name, updates, available/installed previews),
-  `AppsView` (filter chips, tiles/list toggle persisted in localStorage `apps-layout`),
-  `DownloadsView` (pending + updates), `HelpView` (IT contact from branding, device/account
-  info, `SupportTools`), `SettingsView` (sync, autostart, connection, version).
+  `AppsView` ("Anzeigen" ComboBox filter, tiles/list toggle persisted in localStorage
+  `apps-layout`), `DownloadsView` (pending + updates), `DeviceView` ("Geräte": computer
+  details, maintenance, `SupportTools`), `HelpView` (IT contact from branding, account info),
+  `SettingsView` (sync, autostart, connection, version). The device/account inventory is
+  loaded once via `lib/system/systemInfo.svelte.ts`. Visual language follows Company Portal:
+  sentence-case 20px section headings, no monospace in product UI, left-aligned pages.
 - **`lib/components/`** — `CatalogGate` (loading / browser preview / "Keine Verbindung" with
   retry / demo banner around catalog views), `ProductCollection` (tiles or list),
   `ProductTile`, `ProductRow`, `ProductStatus` (one status line for all three), `AppIcon`,

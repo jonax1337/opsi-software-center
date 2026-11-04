@@ -4,7 +4,7 @@
   import AppIcon from "./AppIcon.svelte";
   import ProductActions from "./ProductActions.svelte";
   import ProductStatus from "./ProductStatus.svelte";
-  import { displayName, isInstalled } from "$lib/kiosk/product";
+  import { displayName, displayVersion } from "$lib/kiosk/product";
   import type { KioskProduct } from "$lib/kiosk/types";
 
   type Props = { product: KioskProduct; backLabel: string; onback: () => void };
@@ -24,19 +24,16 @@
   {backLabel}
 </button>
 
-<!-- Company Portal detail: big icon, name + status, primary action on the right -->
-<div class="mb-8 flex flex-wrap items-center gap-5">
+<!-- Company Portal detail: big icon, then name, grey secondary line, status
+     and the primary action directly below the name. -->
+<div class="mb-8 flex items-start gap-6">
   <AppIcon productId={product.productId} size="lg" />
   <div class="min-w-0 flex-1">
-    <h1 class="truncate text-2xl font-semibold leading-tight">{displayName(product)}</h1>
-    <div class="mt-1 font-mono text-sm tabular-nums text-muted-foreground">
-      {isInstalled(product) ? product.installedVerStr : product.versionStr}
-    </div>
-    <div class="mt-2">
-      <ProductStatus {product} />
-    </div>
+    <h1 class="text-[28px] font-semibold leading-9">{displayName(product)}</h1>
+    <div class="text-sm text-muted-foreground">{displayVersion(product)}</div>
+    <div class="mt-1 empty:hidden"><ProductStatus {product} /></div>
+    <div class="mt-4"><ProductActions {product} /></div>
   </div>
-  <ProductActions {product} />
 </div>
 
 {#if product.actionResult === "failed"}
@@ -48,21 +45,21 @@
 
 <!-- product.advice is admin-only packaging info (visible in opsi-configed) — never shown to end users -->
 
-<div class="grid gap-8 md:grid-cols-[minmax(0,1fr)_15rem]">
-  <section>
-    <SectionHeading title="Beschreibung" />
-    <p class="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
-      {product.description || "Für diese App ist keine Beschreibung hinterlegt."}
-    </p>
-  </section>
+<section class="mb-8 max-w-3xl">
+  <SectionHeading title="Beschreibung" />
+  <p class="whitespace-pre-line text-sm leading-relaxed">
+    {product.description || "Für diese App ist keine Beschreibung hinterlegt."}
+  </p>
+</section>
 
-  <aside class="space-y-5">
-    <SectionHeading title="Informationen" />
-    <DataField label="Verfügbare Version" value={product.versionStr} mono />
-    <DataField label="Installierte Version" value={product.installedVerStr || "—"} mono />
-    <DataField label="Produkt-ID" value={product.productId} mono />
+<section>
+  <SectionHeading title="Informationen" />
+  <div class="grid max-w-3xl grid-cols-2 gap-x-8 gap-y-5 sm:grid-cols-3">
+    <DataField label="Verfügbare Version" value={product.versionStr} />
+    <DataField label="Installierte Version" value={product.installedVerStr || "—"} />
+    <DataField label="Produkt-ID" value={product.productId} />
     {#if requirements.length}
       <DataField label="Abhängigkeiten" value={requirements.join(", ")} />
     {/if}
-  </aside>
-</div>
+  </div>
+</section>

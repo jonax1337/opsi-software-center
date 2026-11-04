@@ -24,13 +24,14 @@
     children,
   }: Props = $props();
 
-  const heading = "text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground/70";
+  /** Fluent "Subtitle" ramp (20px semibold, sentence case), as in Company Portal. */
+  const heading = "text-xl font-semibold leading-7 text-foreground";
   const hasRight = $derived(!!actions || !!hint);
   const hasDescription = $derived(!!description || !!children);
 </script>
 
 {#if hasDescription}
-  <div class={cn("mb-2", klass)}>
+  <div class={cn("mb-3", klass)}>
     <div class="flex items-center justify-between">
       <svelte:element this={level} class={heading}>
         {title}{#if inline}{@render inline()}{/if}
@@ -41,12 +42,12 @@
         <span class="text-[11px] text-muted-foreground">{hint}</span>
       {/if}
     </div>
-    <p class="text-xs text-muted-foreground mt-1 leading-relaxed normal-case">
+    <p class="text-sm text-muted-foreground mt-1 leading-relaxed">
       {#if children}{@render children()}{:else}{description}{/if}
     </p>
   </div>
 {:else if hasRight}
-  <div class={cn("flex items-center justify-between mb-2", klass)}>
+  <div class={cn("flex items-center justify-between mb-3", klass)}>
     <svelte:element this={level} class={heading}>
       {title}{#if inline}{@render inline()}{/if}
     </svelte:element>
@@ -57,7 +58,7 @@
     {/if}
   </div>
 {:else}
-  <svelte:element this={level} class={cn(heading, "mb-2", klass)}>
+  <svelte:element this={level} class={cn(heading, "mb-3", klass)}>
     {title}{#if inline}{@render inline()}{/if}
   </svelte:element>
 {/if}

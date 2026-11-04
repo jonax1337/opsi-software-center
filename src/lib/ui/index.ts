@@ -19,6 +19,7 @@ export { default as ListRow } from "./ListRow.svelte";
 export { default as SearchInput } from "./SearchInput.svelte";
 export { default as StatusPill } from "./StatusPill.svelte";
 export { default as FilterChip } from "./FilterChip.svelte";
+export { default as Select } from "./Select.svelte";
 export { default as NavPane } from "./NavPane.svelte";
 export { default as TextInput } from "./TextInput.svelte";
 export { default as FormField } from "./FormField.svelte";

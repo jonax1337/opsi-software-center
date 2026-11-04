@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   compareProducts,
   displayName,
+  displayVersion,
   isPending,
   joinNames,
   matchesSearch,
@@ -40,6 +41,17 @@ describe("displayName", () => {
 
   it("falls back to the product id when the name is empty", () => {
     expect(displayName(product({ productName: "" }))).toBe("vlc");
+  });
+});
+
+describe("displayVersion", () => {
+  it("shows the available version when not installed", () => {
+    expect(displayVersion(product())).toBe("3.0.21-1");
+  });
+
+  it("shows the installed version, even when an update is available", () => {
+    const p = installed({ installedVerStr: "3.0.20-1", updatePossible: true });
+    expect(displayVersion(p)).toBe("3.0.20-1");
   });
 });
 

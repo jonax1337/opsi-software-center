@@ -1,11 +1,12 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte";
-  import { Download, House, LayoutGrid, LifeBuoy, Search, Settings } from "@lucide/svelte";
+  import { Download, House, Laptop, LayoutGrid, LifeBuoy, Search, Settings } from "@lucide/svelte";
   import { NavPane, SearchInput, Toaster } from "$lib/ui";
   import type { NavItem } from "$lib/ui/NavPane.svelte";
   import CatalogGate from "$lib/components/CatalogGate.svelte";
   import ProductDetail from "$lib/components/ProductDetail.svelte";
   import AppsView from "$lib/views/AppsView.svelte";
+  import DeviceView from "$lib/views/DeviceView.svelte";
   import DownloadsView from "$lib/views/DownloadsView.svelte";
   import HelpView from "$lib/views/HelpView.svelte";
   import HomeView from "$lib/views/HomeView.svelte";
@@ -14,13 +15,14 @@
   import type { Filter } from "$lib/kiosk/product";
   import brandMark from "./assets/mark.svg";
 
-  type View = "home" | "apps" | "downloads" | "help" | "settings";
+  type View = "home" | "apps" | "downloads" | "devices" | "help" | "settings";
 
   const VIEW_LABELS: Record<View, string> = {
     home: "Startseite",
     apps: "Apps",
-    downloads: "Downloads & Updates",
-    help: "Hilfe & Support",
+    downloads: "Downloads und Updates",
+    devices: "Geräte",
+    help: "Hilfe und Support",
     settings: "Einstellungen",
   };
 
@@ -42,6 +44,7 @@
       icon: Download,
       count: downloadsCount || undefined,
     },
+    { value: "devices", label: VIEW_LABELS.devices, icon: Laptop },
   ]);
   const navFooter: NavItem[] = [
     { value: "help", label: VIEW_LABELS.help, icon: LifeBuoy },
@@ -116,7 +119,8 @@
       class="relative flex-1 min-w-0 flex flex-col rounded-tl-lg border-l border-t border-hairline bg-background/55 overflow-hidden"
     >
       <main class="flex-1 overflow-y-auto">
-        <div class="max-w-5xl mx-auto px-8 pt-7 pb-12">
+        <!-- Left-aligned like a WinUI NavigationView page, not centered. -->
+        <div class="max-w-6xl px-10 pt-8 pb-12">
           {#key transitionKey}
             <div class={selected ? "animate-drill" : "animate-fade"}>
               {#if selected}
@@ -125,6 +129,8 @@
                   backLabel={VIEW_LABELS[view]}
                   onback={() => (selectedId = null)}
                 />
+              {:else if view === "devices"}
+                <DeviceView />
               {:else if view === "help"}
                 <HelpView />
               {:else if view === "settings"}

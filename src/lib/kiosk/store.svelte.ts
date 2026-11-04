@@ -66,7 +66,7 @@ class KioskStore {
   pending = $derived(this.products.filter(isPending));
   installed = $derived(this.products.filter(isInstalled));
   updatable = $derived(this.products.filter(hasUpdate));
-  /** Updates not already queued — what "Downloads & Updates" still offers. */
+  /** Updates not already queued — what "Downloads und Updates" still offers. */
   updatesToOffer = $derived(this.updatable.filter((p) => !isPending(p)));
   filtered = $derived(selectProducts(this.products, this.filter, this.search));
 

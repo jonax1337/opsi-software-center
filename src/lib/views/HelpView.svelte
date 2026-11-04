@@ -2,37 +2,18 @@
   import { onMount } from "svelte";
   import { Globe, Mail, Phone } from "@lucide/svelte";
   import { Card, CardContent, DataField, PageHeader, SectionHeading, toast } from "$lib/ui";
-  import SupportTools from "$lib/components/SupportTools.svelte";
-  import {
-    getSystemInfo,
-    isTauri,
-    openSupportContact,
-    type SupportChannel,
-    type SystemInfo,
-  } from "$lib/kiosk/bridge";
+  import { isTauri, openSupportContact, type SupportChannel } from "$lib/kiosk/bridge";
   import { kiosk } from "$lib/kiosk/store.svelte";
-  import {
-    describePasswordExpiry,
-    EM_DASH,
-    formatDate,
-    formatDateTime,
-    formatUptime,
-    presentOrUndefined as present,
-  } from "$lib/format";
-
-  let sys = $state<SystemInfo | null>(null);
-  let sysLoading = $state(isTauri());
+  import { systemInfo } from "$lib/system/systemInfo.svelte";
+  import { describePasswordExpiry, presentOrUndefined as present } from "$lib/format";
 
   onMount(() => {
     if (!isTauri()) return;
     void kiosk.loadBranding();
-    getSystemInfo()
-      .then((info) => (sys = info))
-      .catch(() => {
-        // no inventory is shown as "nicht verfügbar" below
-      })
-      .finally(() => (sysLoading = false));
+    systemInfo.load();
   });
+
+  const sys = $derived(systemInfo.info);
 
   const branding = $derived(kiosk.branding);
   const contacts = $derived(
@@ -51,24 +32,19 @@
     }
   }
 
-  const now = new Date();
-  const uptime = $derived(sys?.pc?.lastBoot ? formatUptime(sys.pc.lastBoot, now) : undefined);
-  const password = $derived(sys?.user ? describePasswordExpiry(sys.user.passwordExpires, now) : null);
+  const password = $derived(
+    sys?.user ? describePasswordExpiry(sys.user.passwordExpires, new Date()) : null,
+  );
   const PASSWORD_TONE_CLASS = {
     bad: "text-destructive font-medium",
     warn: "text-amber-600 dark:text-amber-400 font-medium",
     ok: "",
     muted: "",
   } as const;
-  const lastUpdate = $derived.by(() => {
-    const d = sys?.diag;
-    if (!d?.lastUpdateId) return EM_DASH;
-    return d.lastUpdate ? `${d.lastUpdateId} · ${formatDate(d.lastUpdate)}` : d.lastUpdateId;
-  });
 </script>
 
-<PageHeader title="Hilfe & Support">
-  Kontakt zum IT-Support und Informationen zu diesem Computer.
+<PageHeader title="Hilfe und Support">
+  Kontakt zum IT-Support und Informationen zu Ihrem Konto.
 </PageHeader>
 
 <SectionHeading title="IT-Support kontaktieren" />
@@ -100,41 +76,14 @@
   </CardContent>
 </Card>
 
-<SectionHeading title="Computer" />
-<Card class="card-inset mb-6">
-  <CardContent>
-    {#if sys?.pc}
-      {@const pc = sys.pc}
-      <div class="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
-        <DataField label="Computername" value={pc.hostname} mono />
-        <DataField label="Domäne" value={present(pc.domain)} />
-        <DataField label="Modell" value={present(`${pc.manufacturer} ${pc.model}`)} />
-        <DataField label="Seriennummer" value={present(pc.serial)} mono />
-        <DataField label="Windows" value={pc.os} />
-        <DataField label="Build" value={pc.build} mono />
-        <DataField label="Prozessor" value={present(pc.cpu)} />
-        <DataField label="Arbeitsspeicher" value={`${pc.ramGb} GB`} />
-        <DataField label="Speicher (C:)" value={`${pc.diskFreeGb} GB frei / ${pc.diskTotalGb} GB`} />
-        <DataField label="IP-Adresse" value={pc.ip ?? EM_DASH} mono />
-        <DataField label="Letzter Neustart" value={formatDateTime(pc.lastBoot)} />
-        <DataField label="Betriebszeit" value={uptime} />
-      </div>
-    {:else}
-      <p class="text-sm text-muted-foreground">
-        {sysLoading ? "Geräteinformationen werden geladen…" : "Keine Geräteinformationen verfügbar."}
-      </p>
-    {/if}
-  </CardContent>
-</Card>
-
 <SectionHeading title="Mein Konto" />
-<Card class="card-inset mb-6">
+<Card class="card-inset">
   <CardContent>
     {#if sys?.user}
       {@const u = sys.user}
       <div class="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
         <DataField label="Name" value={present(u.displayName)} />
-        <DataField label="Benutzer" value={u.username} mono />
+        <DataField label="Benutzer" value={u.username} />
         <DataField label="E-Mail" value={present(u.mail)} />
         <DataField label="Abteilung" value={present(u.department)} />
         <DataField label="Büro" value={present(u.office)} />
@@ -147,30 +96,10 @@
       </div>
     {:else}
       <p class="text-sm text-muted-foreground">
-        {sysLoading
+        {systemInfo.loading
           ? "Kontoinformationen werden geladen…"
           : "Keine Verzeichnisverbindung — Kontodaten nicht verfügbar."}
       </p>
     {/if}
-  </CardContent>
-</Card>
-
-<SectionHeading title="Wartung" />
-<Card class="card-inset">
-  <CardContent>
-    <div class="space-y-5">
-      {#if sys?.diag}
-        {@const d = sys.diag}
-        <div class="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3">
-          <DataField label="Anmeldeserver (DC)" value={present(d.logonServer)} mono />
-          <DataField
-            label="Letzte Richtlinienaktualisierung"
-            value={d.lastGpo ? formatDateTime(d.lastGpo) : EM_DASH}
-          />
-          <DataField label="Letztes Update" value={lastUpdate} />
-        </div>
-      {/if}
-      <SupportTools />
-    </div>
   </CardContent>
 </Card>
