@@ -1,24 +1,20 @@
-//! Per-organisation settings written by the opsi package (product properties
-//! → `%ProgramData%\opsi-kiosk\branding.ini`), so one build serves everyone:
-//! company name and IT-support contact, shown like Company Portal's branding.
-//!
-//! ```ini
-//! [branding]
-//! company_name=Example Ltd
-//! support_phone=+49 30 1234567
-//! support_email=it@example.org
-//! support_url=https://helpdesk.example.org
-//! ```
+//! Per-organisation settings written by the opsi package, so one build serves
+//! everyone: company name and IT-support contact, shown like Company Portal's
+//! branding. The opsi setup writes the product properties to
+//! `HKLM\SOFTWARE\opsi-kiosk\Branding` (REG_SZ `company_name`, `support_phone`,
+//! `support_email`, `support_url`) — HKLM, because standard users cannot write
+//! there, so nobody can plant a fake "IT support" link for other users.
 
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
 const DATA_DIR_NAME: &str = "opsi-kiosk";
-const BRANDING_FILE: &str = "branding.ini";
+#[cfg(windows)]
+const BRANDING_KEY: &str = r"SOFTWARE\opsi-kiosk\Branding";
 
-/// `%ProgramData%\opsi-kiosk` — machine-wide, writable by the opsi package
-/// (SYSTEM), readable by every user.
+/// `%ProgramData%\opsi-kiosk` — machine-wide; the opsi package restricts
+/// write access to SYSTEM/Administrators.
 pub fn data_dir() -> Option<PathBuf> {
     std::env::var("ProgramData")
         .ok()
@@ -34,13 +30,29 @@ pub struct Branding {
     pub support_url: String,
 }
 
-/// Missing or unreadable file = no branding; the UI then shows neutral texts.
+/// Missing key or values = no branding; the UI then shows neutral texts.
 #[tauri::command]
 pub fn get_branding() -> Branding {
-    data_dir()
-        .and_then(|dir| std::fs::read(dir.join(BRANDING_FILE)).ok())
-        .map(|bytes| parse_branding(&decode(&bytes)))
-        .unwrap_or_default()
+    #[cfg(windows)]
+    {
+        use winreg::enums::HKEY_LOCAL_MACHINE;
+        use winreg::RegKey;
+
+        let Ok(key) = RegKey::predef(HKEY_LOCAL_MACHINE).open_subkey(BRANDING_KEY) else {
+            return Branding::default();
+        };
+        let value = |name: &str| key.get_value::<String, _>(name).unwrap_or_default().trim().to_string();
+        Branding {
+            company_name: value("company_name"),
+            support_phone: value("support_phone"),
+            support_email: value("support_email"),
+            support_url: value("support_url"),
+        }
+    }
+    #[cfg(not(windows))]
+    {
+        Branding::default()
+    }
 }
 
 #[derive(Clone, Copy, Deserialize)]
@@ -68,10 +80,10 @@ pub fn open_support_contact(channel: SupportChannel) -> Result<(), String> {
 }
 
 fn support_uri(branding: &Branding, channel: SupportChannel) -> Option<String> {
-    let uri = match channel {
+    match channel {
         SupportChannel::Email => {
             let email = branding.support_email.trim();
-            email.contains('@').then(|| format!("mailto:{email}"))?
+            is_plain_email(email).then(|| format!("mailto:{email}"))
         }
         SupportChannel::Phone => {
             let digits: String = branding
@@ -79,46 +91,32 @@ fn support_uri(branding: &Branding, channel: SupportChannel) -> Option<String> {
                 .chars()
                 .filter(|c| c.is_ascii_digit() || *c == '+')
                 .collect();
-            (!digits.is_empty()).then(|| format!("tel:{digits}"))?
+            (!digits.is_empty()).then(|| format!("tel:{digits}"))
         }
         SupportChannel::Website => {
             let url = branding.support_url.trim();
-            (url.starts_with("https://") || url.starts_with("http://")).then(|| url.to_string())?
+            let has_web_scheme = url.starts_with("https://") || url.starts_with("http://");
+            (has_web_scheme && is_plain_uri(url)).then(|| url.to_string())
         }
-    };
-    is_shell_safe(&uri).then_some(uri)
+    }
 }
 
-/// No whitespace, quotes or control characters — the URI goes to explorer.exe.
-fn is_shell_safe(uri: &str) -> bool {
+/// One `@`, a dotted domain and only characters of an ordinary address — no
+/// `?`/`&` (mailto header injection), separators or quotes.
+fn is_plain_email(email: &str) -> bool {
+    let Some((local, domain)) = email.split_once('@') else { return false };
+    let allowed = |c: char| c.is_ascii_alphanumeric() || "._+-".contains(c);
+    !local.is_empty()
+        && domain.contains('.')
+        && !domain.starts_with('.')
+        && !domain.ends_with('.')
+        && local.chars().all(allowed)
+        && domain.chars().all(|c| c.is_ascii_alphanumeric() || ".-".contains(c))
+}
+
+/// No whitespace, quotes or control characters.
+fn is_plain_uri(uri: &str) -> bool {
     !uri.chars().any(|c| c.is_whitespace() || c.is_control() || c == '"')
-}
-
-/// opsi-script may write the file as UTF-8 (with or without BOM) or in the
-/// ANSI code page; Latin-1 decoding keeps German umlauts intact for the latter.
-fn decode(bytes: &[u8]) -> String {
-    let bytes = bytes.strip_prefix(b"\xEF\xBB\xBF").unwrap_or(bytes);
-    match std::str::from_utf8(bytes) {
-        Ok(text) => text.to_string(),
-        Err(_) => bytes.iter().map(|&b| char::from(b)).collect(),
-    }
-}
-
-/// `key=value` lines; sections, comments (`;`, `#`) and unknown keys are ignored.
-fn parse_branding(text: &str) -> Branding {
-    let mut branding = Branding::default();
-    for line in text.lines().map(str::trim) {
-        let Some((key, value)) = line.split_once('=') else { continue };
-        let value = value.trim().to_string();
-        match key.trim() {
-            "company_name" => branding.company_name = value,
-            "support_phone" => branding.support_phone = value,
-            "support_email" => branding.support_email = value,
-            "support_url" => branding.support_url = value,
-            _ => {}
-        }
-    }
-    branding
 }
 
 #[cfg(test)]
@@ -130,30 +128,8 @@ mod tests {
             company_name: "Beispiel GmbH".into(),
             support_phone: "+49 (30) 123-4567".into(),
             support_email: "it@example.org".into(),
-            support_url: "https://helpdesk.example.org".into(),
+            support_url: "https://helpdesk.example.org/?q=a%20b".into(),
         }
-    }
-
-    #[test]
-    fn parses_known_keys_and_ignores_the_rest() {
-        let parsed = parse_branding(
-            "[branding]\n; comment\ncompany_name = Beispiel GmbH \nunknown=x\nsupport_email=it@example.org\n",
-        );
-        assert_eq!(parsed.company_name, "Beispiel GmbH");
-        assert_eq!(parsed.support_email, "it@example.org");
-        assert_eq!(parsed.support_phone, "");
-    }
-
-    #[test]
-    fn keeps_equals_signs_inside_values() {
-        let parsed = parse_branding("support_url=https://x.example/?a=b");
-        assert_eq!(parsed.support_url, "https://x.example/?a=b");
-    }
-
-    #[test]
-    fn decodes_utf8_with_bom_and_ansi_umlauts() {
-        assert_eq!(decode(b"\xEF\xBB\xBFM\xC3\xBCller"), "Müller");
-        assert_eq!(decode(b"M\xFCller"), "Müller");
     }
 
     #[test]
@@ -163,18 +139,32 @@ mod tests {
         assert_eq!(support_uri(&b, SupportChannel::Phone).unwrap(), "tel:+49301234567");
         assert_eq!(
             support_uri(&b, SupportChannel::Website).unwrap(),
-            "https://helpdesk.example.org"
+            "https://helpdesk.example.org/?q=a%20b"
         );
+    }
+
+    #[test]
+    fn rejects_unsafe_emails() {
+        for email in [
+            "not-an-address",
+            "a@b@example.org",
+            "it@example.org?subject=x&body=y",
+            "it@example.org,evil@example.org",
+            "it@localhost",
+            r"it@exa\mple.org",
+            "\"it\"@example.org",
+        ] {
+            let b = Branding { support_email: email.into(), ..Branding::default() };
+            assert!(support_uri(&b, SupportChannel::Email).is_none(), "{email:?} must be rejected");
+        }
     }
 
     #[test]
     fn rejects_missing_or_unsafe_contacts() {
         let unsafe_branding = Branding {
-            support_email: "not-an-address".into(),
             support_url: "file:///C:/Windows/System32/cmd.exe".into(),
             ..Branding::default()
         };
-        assert!(support_uri(&unsafe_branding, SupportChannel::Email).is_none());
         assert!(support_uri(&unsafe_branding, SupportChannel::Phone).is_none());
         assert!(support_uri(&unsafe_branding, SupportChannel::Website).is_none());
 

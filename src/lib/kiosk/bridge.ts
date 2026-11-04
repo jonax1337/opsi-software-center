@@ -110,7 +110,7 @@ export async function getSystemInfo(): Promise<SystemInfo> {
 }
 
 /** Company name + IT-support contact from the opsi package's product
- *  properties (`%ProgramData%\opsi-kiosk\branding.ini`). Empty strings = not set. */
+ *  properties (`HKLM\SOFTWARE\opsi-kiosk\Branding`). Empty strings = not set. */
 export interface Branding {
   companyName: string;
   supportPhone: string;

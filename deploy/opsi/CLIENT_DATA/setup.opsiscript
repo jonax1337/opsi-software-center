@@ -13,7 +13,6 @@ ScriptErrorMessages=off
 DefVar $ProductVersion$
 DefVar $InstalledVersion$
 DefVar $DataDir$
-DefVar $BrandingFile$
 DefVar $LocalSetup$
 DefVar $ExitCode$
 DefVar $CompanyName$
@@ -24,7 +23,6 @@ DefVar $SupportUrl$
 ; Wird von deploy/build-opsi-package.ps1 aus package.json gesetzt — nicht von Hand aendern.
 Set $ProductVersion$ = "0.3.0"
 Set $DataDir$ = "%CommonAppDataDir%\opsi-kiosk"
-Set $BrandingFile$ = $DataDir$ + "\branding.ini"
 Set $LocalSetup$ = "%opsiTmpDir%\software-center-setup.exe"
 
 Set $CompanyName$ = GetProductProperty("company_name", "")
@@ -34,7 +32,7 @@ Set $SupportUrl$ = GetProductProperty("support_url", "")
 
 comment "--- Icons und Branding immer aktualisieren (auch bei Fast-Exit) ---"
 DosInAnIcon_prepare_datadir
-Patches_branding $BrandingFile$
+Registry_branding /64Bit
 
 comment "--- Fast-Exit: Soll-Version bereits installiert? ---"
 Set $InstalledVersion$ = GetRegistryStringValue64("[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Software Center] DisplayVersion")
@@ -66,18 +64,24 @@ else
 	Files_cleanup_tmp
 endif
 
+; Recreated on every run, then locked down: only SYSTEM and Administrators may
+; write (SIDs S-1-5-18, S-1-5-32-544), users only read (S-1-5-32-545) — by
+; default users could create files under %ProgramData% and plant icons.
 ; Icons are optional (CLIENT_DATA\icons may be empty) — copy only if present.
-; The stub file gives Patches_branding an existing INI to edit on a fresh client.
 [DosInAnIcon_prepare_datadir]
-if not exist "$DataDir$\icons" mkdir "$DataDir$\icons"
+if exist "$DataDir$" rmdir /s /q "$DataDir$"
+mkdir "$DataDir$\icons"
+icacls "$DataDir$" /inheritance:r /grant:r *S-1-5-18:(OI)(CI)F *S-1-5-32-544:(OI)(CI)F *S-1-5-32-545:(OI)(CI)RX /Q
 if exist "%ScriptPath%\icons\*.*" xcopy /y /q "%ScriptPath%\icons\*.*" "$DataDir$\icons\"
-if not exist "$BrandingFile$" echo [branding]> "$BrandingFile$"
 
-[Patches_branding]
-set [branding] company_name=$CompanyName$
-set [branding] support_phone=$SupportPhone$
-set [branding] support_email=$SupportEmail$
-set [branding] support_url=$SupportUrl$
+; HKLM: standard users cannot write here, so the support contacts shown in
+; the app always come from the admin.
+[Registry_branding]
+openkey [HKEY_LOCAL_MACHINE\SOFTWARE\opsi-kiosk\Branding]
+set "company_name" = "$CompanyName$"
+set "support_phone" = "$SupportPhone$"
+set "support_email" = "$SupportEmail$"
+set "support_url" = "$SupportUrl$"
 
 [Winbatch_install]
 "$LocalSetup$" /S

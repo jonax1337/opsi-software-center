@@ -108,7 +108,7 @@ class KioskStore {
     }
   }
 
-  /** Also called periodically: the opsi package may rewrite branding.ini
+  /** Also called periodically: the opsi package may rewrite the branding
    *  while the app keeps running in the tray. */
   async loadBranding() {
     try {

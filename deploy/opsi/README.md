@@ -9,7 +9,7 @@ Diese Datei beschreibt, was im Paket steckt und was die Skripte tun.
 deploy/opsi/
 ├── OPSI/control                  Produktdefinition + Properties
 └── CLIENT_DATA/
-    ├── setup.opsiscript          Installation (Fast-Exit, Icons, Branding)
+    ├── setup.opsiscript          Installation (Fast-Exit, Icons, Branding in HKLM)
     ├── uninstall.opsiscript      Deinstallation
     ├── files/                    ← software-center-setup.exe (vom Build-Skript)
     └── icons/                    ← <productId>.png usw. (optional)
@@ -21,15 +21,12 @@ deploy/opsi/
 
 Bei jedem Lauf:
 
-1. legt `%ProgramData%\opsi-kiosk\icons\` an und kopiert `CLIENT_DATA\icons\*` dorthin,
-2. schreibt die Produkt-Properties nach `%ProgramData%\opsi-kiosk\branding.ini`:
-   ```ini
-   [branding]
-   company_name=…
-   support_phone=…
-   support_email=…
-   support_url=…
-   ```
+1. legt `%ProgramData%\opsi-kiosk\` neu an und sperrt ihn per ACL: nur SYSTEM und
+   Administratoren dürfen schreiben, Benutzer nur lesen (sonst könnten Standardbenutzer dort
+   Dateien ablegen); kopiert anschließend `CLIENT_DATA\icons\*` nach `…\opsi-kiosk\icons\`,
+2. schreibt die Produkt-Properties als REG_SZ nach `HKLM\SOFTWARE\opsi-kiosk\Branding`
+   (`company_name`, `support_phone`, `support_email`, `support_url`) — HKLM, damit niemand
+   außer der IT die angezeigten Support-Kontakte ändern kann.
 
 Danach nur, wenn die installierte Version (`DisplayVersion` im Uninstall-Schlüssel
 `Software Center`) nicht der Paketversion entspricht:
@@ -47,7 +44,7 @@ Die Soll-Version in `setup.opsiscript` und `version:` in `control` setzt das Bui
 ## uninstall.opsiscript
 
 Beendet laufende Instanzen, ruft den NSIS-Uninstaller still auf und entfernt
-`%ProgramFiles%\Software Center` sowie `%ProgramData%\opsi-kiosk` (Icons und Branding).
+`%ProgramFiles%\Software Center`, `%ProgramData%\opsi-kiosk` (Icons) und den Registry-Schlüssel `HKLM\SOFTWARE\opsi-kiosk`.
 
 ## Paketquelle bauen
 

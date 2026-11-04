@@ -26,12 +26,34 @@ pub fn windows_tool(relative_path: &str) -> std::process::Command {
     command
 }
 
-/// Hand a file path or URI to the shell (default browser, mail client, …).
+/// Hand a file path or URI to its default handler (browser, mail client, …)
+/// via `ShellExecuteW` — the target is passed as one string, never parsed as
+/// a command line (unlike handing it to explorer.exe).
 #[cfg(windows)]
 pub fn shell_open(target: &str) -> Result<(), String> {
-    windows_tool("explorer.exe")
-        .arg(target)
-        .spawn()
-        .map(|_| ())
-        .map_err(|e| format!("Konnte {target} nicht öffnen: {e}"))
+    use std::os::windows::ffi::OsStrExt;
+    use windows_sys::Win32::UI::Shell::ShellExecuteW;
+    use windows_sys::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+
+    /// ShellExecuteW reports success with a value greater than 32.
+    const SHELL_EXECUTE_OK: isize = 32;
+
+    let wide = |s: &str| -> Vec<u16> { std::ffi::OsStr::new(s).encode_wide().chain([0]).collect() };
+    let (verb, file) = (wide("open"), wide(target));
+    // SAFETY: both strings are NUL-terminated UTF-16 buffers that outlive the call.
+    let result = unsafe {
+        ShellExecuteW(
+            std::ptr::null_mut(),
+            verb.as_ptr(),
+            file.as_ptr(),
+            std::ptr::null(),
+            std::ptr::null(),
+            SW_SHOWNORMAL,
+        )
+    };
+    if result as isize > SHELL_EXECUTE_OK {
+        Ok(())
+    } else {
+        Err(format!("Konnte {target} nicht öffnen (ShellExecute-Code {})", result as isize))
+    }
 }

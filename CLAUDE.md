@@ -35,13 +35,13 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
   complete after 4 s.
 - **`icons.rs`** — `kiosk_get_icons`, file lookup (see Kiosk API notes).
 - **`config.rs`** — `%ProgramData%\opsi-kiosk` (`data_dir()`), `get_branding` (reads
-  `branding.ini` written by the opsi package from product properties: company name +
+  `HKLM\SOFTWARE\opsi-kiosk\Branding`, written by the opsi package from product properties — HKLM so standard users can't plant fake support links: company name +
   support phone/email/url), `open_support_contact(channel)` — the frontend only names the
   channel, the URI always comes from the config (mailto:/tel:/http(s) only).
 - **`device.rs`** — gpupdate, flushdns, gpresult report, pending-reboot check.
 - **`inventory.rs`** — `get_system_info` (CIM/WMI + ADSI via a hard-coded PowerShell script).
 - **`winproc.rs`** — `windows_tool()` (absolute %WINDIR% path, CREATE_NO_WINDOW),
-  `shell_open()`, `blocking()` — use these for every external process.
+  `shell_open()` (ShellExecuteW, never explorer.exe), `blocking()` — use these for every external process.
 - **`system.rs`** — `get_accent_color`. **`tray.rs`** — tray icon/menu, `show_main()`.
 - **`lib.rs`** — plugin + command registration, close-to-tray, autostart flag.
 
@@ -83,7 +83,8 @@ Light/dark follows the OS automatically (no manual toggle). The Soft Stack ident
 
 ### Deployment (`deploy/`, `.github/workflows/build.yml`)
 - `deploy/opsi/` — opsi package sources; product properties `company_name`, `support_*`
-  → `branding.ini`. `deploy/build-opsi-package.ps1` builds the release, syncs the version
+  → `HKLM\SOFTWARE\opsi-kiosk\Branding`; the package recreates `%ProgramData%\opsi-kiosk` with an
+  ACL (SYSTEM/Administrators write, Users read). `deploy/build-opsi-package.ps1` builds the release, syncs the version
   from `package.json` into `control` + `setup.opsiscript`, and packs
   `dist-opsi/software-center_<v>-opsi-source.tar.gz`. Tag `v*` → CI builds + releases it.
 - Version lives in `package.json` (tauri.conf.json points at it) and `Cargo.toml`.

@@ -101,7 +101,7 @@ sind schnell: Ist die Version schon installiert, werden nur Icons und Properties
 | `support_email` | E-Mail-Kachel (öffnet das Mailprogramm) | `it@example.org` |
 | `support_url` | Website-Kachel, muss mit `https://` oder `http://` beginnen | `https://helpdesk.example.org` |
 
-Das Setup schreibt die Werte nach `%ProgramData%\opsi-kiosk\branding.ini`. Leere Properties
+Das Setup schreibt die Werte nach `HKLM\SOFTWARE\opsi-kiosk\Branding` (für Standardbenutzer nicht änderbar). Leere Properties
 werden nicht angezeigt. Nach einer Änderung das Produkt erneut auf **setup** stellen.
 
 ## Produkt-Icons
@@ -154,7 +154,7 @@ Windows-Benachrichtigung.
 |---|---|
 | „Keine Verbindung zum opsi-Client-Dienst" | Läuft der Dienst `opsiclientd`? Ist `kiosk_api_active = true`? Antwortet `https://localhost:4441/kiosk`? Kurz nach der Anmeldung startet der Dienst manchmal noch — das Software Center versucht es automatisch erneut. |
 | Keine Apps sichtbar | Dem Client ist keine Software-on-Demand-Gruppe zugewiesen, oder die Gruppe ist leer (Schritt 3). |
-| Firmenname/Kontakt fehlt | Properties gesetzt? Danach `software-center` erneut auf **setup** stellen. Prüfen: `%ProgramData%\opsi-kiosk\branding.ini`. |
+| Firmenname/Kontakt fehlt | Properties gesetzt? Danach `software-center` erneut auf **setup** stellen. Prüfen: Registry `HKLM\SOFTWARE\opsi-kiosk\Branding`. |
 | Icons fehlen | Dateiname muss exakt der Produkt-ID entsprechen, siehe [Produkt-Icons](#produkt-icons). |
 | Installation einer App schlägt fehl | Das Software Center setzt nur den Action-Request; die Installation führt opsi aus. Log auf dem Client: `C:\opsi.org\log\opsi-script.log`. |
 | Paket-Setup schlägt fehl | Log des Setups: `C:\opsi.org\log\opsi-script.log`; der NSIS-Installer meldet seinen ExitCode dort. |
